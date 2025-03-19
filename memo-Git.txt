@@ -1,0 +1,7 @@
+git init
+git branch -M main
+git lfs track "*.json"
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/typicalspider98/AI-Assisted-Poetry-Translation.git
+git push origin main
