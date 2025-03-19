@@ -1,0 +1,5 @@
+
+```shell
+pip install redis
+
+```

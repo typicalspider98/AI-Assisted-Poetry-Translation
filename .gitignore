@@ -1,0 +1,45 @@
+# 忽略所有的编译生成文件
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.out
+*.a
+
+# Python 虚拟环境
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+
+# 日志和临时文件
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# 忽略 VS Code / JetBrains IDE 相关配置
+.vscode/
+.idea/
+
+# CMake / 编译相关文件
+build/
+CMakeFiles/
+CMakeCache.txt
+
+# Git 相关
+*.orig
+*.rej
+
+# 忽略密钥和凭据
+*.pem
+*.key
+*.crt
+
+# 忽略模型和日志
+**/logs/
+**/log/
+**/models/
+**/model/
