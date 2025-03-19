@@ -38,13 +38,19 @@ CMakeCache.txt
 *.key
 *.crt
 
-# 忽略模型和日志
-**/logs/
-**/log/
-**/models/
-**/model/
+# ✅ 先允许 Git 追踪 logs/ 和 models/ 目录
+!logs/
+!log/
+!models/
+!model/
 
-# 但允许上传 logs 目录（通过 .gitkeep 方式）
+# 🚀 再忽略 logs/ 和 models/ 目录内的所有文件
+logs/*
+log/*
+models/*
+model/*
+
+# ✅ 但允许上传 .gitkeep 文件
 !logs/.gitkeep
 !log/.gitkeep
 !models/.gitkeep
