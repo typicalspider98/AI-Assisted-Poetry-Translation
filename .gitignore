@@ -43,3 +43,5 @@ CMakeCache.txt
 **/log/
 **/models/
 **/model/
+# 但允许上传 logs 目录（通过 .gitkeep 方式）
+!.gitkeep
