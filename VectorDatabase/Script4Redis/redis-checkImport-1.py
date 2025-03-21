@@ -5,7 +5,7 @@ import redis
 r = redis.Redis(host="localhost", port=6379, db=0)
 
 # 要查询的词条
-key = "Sa-0"  # 你想查看的词条
+key = "sidling-0"  # 你想查看的词条
 # key = "A.C.-0"  # 你想查看的词条
 stored_embedding = r.get(key)  # 使用 Redis 连接实例 r
 
