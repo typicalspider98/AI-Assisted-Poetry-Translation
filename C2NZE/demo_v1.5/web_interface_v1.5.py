@@ -35,7 +35,7 @@ with gr.Blocks() as demo:
 
     # 第二行：用户选择模型路径 & 设定 Token
     with gr.Row():
-        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True)
+        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
         btn_select_model = gr.Button("选择本地模型文件夹 | Select the local model folder")  # 使用 tkinter 选择文件夹
         btn_set_model_path = gr.Button("确认模型路径 | Confirm the model path")  # 确认最终路径
         model_path_status = gr.Textbox(label="模型路径状态 | Model Path Status", interactive=False)
@@ -49,21 +49,21 @@ with gr.Blocks() as demo:
     # 第三行：展示 Qwen14B 生成的 Prompt0
     with gr.Row():
         btn_submit_boss_model = gr.Button("提交到本地Boss模型 | Submit to local Boss model")
-        textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0 | Boss spawned Prompt0", lines=8)
+        textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0 | Boss spawned Prompt0", lines=8, interactive=True)
 
     # 第四行：使用 Prompt0 调用 DeepSeek API 获取 Translation1
     with gr.Row():
-        textbox_translation1 = gr.Textbox(label="DeepSeek 返回的 Translation1 | Translation1 returned by DeepSeek", lines=8)
+        textbox_translation1 = gr.Textbox(label="DeepSeek 返回的 Translation1 | Translation1 returned by DeepSeek", lines=8, interactive=True)
         btn_submit_prompt = gr.Button("提交 Prompt0 给 DeepSeek | Submit Prompt0 to DeepSeek")
 
     # 第五行：将 Translation1 提交给 Qwen 审查，得到审查反馈（可编辑）
     with gr.Row():
-        textbox_review = gr.Textbox(label="Qwen14B 审查意见（可编辑） | Qwen14B Review comments (editable)", lines=8)
+        textbox_review = gr.Textbox(label="Qwen14B 审查意见（可编辑） | Qwen14B Review comments (editable)", lines=8, interactive=True)
         btn_call_ds_review = gr.Button("提交翻译审查 | Submit Translation Review")
 
     # 第六行：使用用户编辑后的审查反馈调用 DS 获取 Translation2
     with gr.Row():
-        textbox_translation2 = gr.Textbox(label="DeepSeek返回的Translation2 | Translation2 returned by DeepSeek", lines=8)
+        textbox_translation2 = gr.Textbox(label="DeepSeek返回的Translation2 | Translation2 returned by DeepSeek", lines=8, interactive=True)
         btn_submit_revision = gr.Button("修订后提交给DS | Revised and submitted to DS")
 
     # 如用户对 Translation2 不满意，可再次提交审查（循环）
@@ -129,5 +129,5 @@ with gr.Blocks() as demo:
         outputs=textbox_review
     )
 
-    # demo.launch(share=True)
-    demo.launch()
+    demo.launch(share=True)
+    # demo.launch()

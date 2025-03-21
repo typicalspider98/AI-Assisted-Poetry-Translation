@@ -1,3 +1,4 @@
+
 import sys
 import openai
 import torch
@@ -5,7 +6,6 @@ from openai import OpenAI  # 新版 SDK 用法
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datetime import datetime
 import os
-from transformers import BitsAndBytesConfig
 
 # 限制 PyTorch 的分配策略，以减少显存碎片化
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:64"
@@ -35,7 +35,8 @@ custom_model_path = None
 local_model_token = None
 
 # 用 accelerate 让 PyTorch 逐步加载模型
-from accelerate import infer_auto_device_map
+# from accelerate import infer_auto_device_map
+# device_map = infer_auto_device_map(model, max_memory={0: "14GB", "cpu": "16GB"})  
 
 def set_model_path(new_path: str):
     global custom_model_path, tokenizer, model
@@ -55,22 +56,12 @@ def set_model_path(new_path: str):
         default_model_path = os.path.abspath("/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
         model_path = custom_model_path if custom_model_path else default_model_path
         tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True, local_files_only=True)
-
-        #model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True, local_files_only=True)
-        # device_map = infer_auto_device_map(model, max_memory={0: "14GB", "cpu": "8GB"})  
-        model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True, local_files_only=True,  # load_in_8bit=True,  # 启用 8-bit 量化
-                                                    device_map="auto",  # device_map="auto",
-                                                    torch_dtype=torch.float16,
-                                                    quantization_config=BitsAndBytesConfig(
-                                                        load_in_4bit=True,
-                                                        bnb_4bit_compute_dtype=torch.float16,
-                                                        bnb_4bit_quant_type="nf4",
-                                                        )
-                                                    )
+        model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True, local_files_only=True,
+                                                    load_in_8bit=True,  # 启用 8-bit 量化
+                                                    device_map="auto",  # device_map=device_map,
+                                                    torch_dtype=torch.float16)
                                                     # torch_dtype="auto")  # 半精度计算），节省显存
         # model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True, device_map="cpu")
-
-
         print("Local Boss model loaded.")
         write_log("本地 Boss 模型加载完成。")
         return f"✅ 模型加载成功: {new_path}"  # 返回成功信息
@@ -105,7 +96,7 @@ write_log("DeepSeek API 配置完成。")
 #####################################
 # 3. 定义本地生成函数
 #####################################
-def local_generate(prompt_text: str, max_new_tokens=128, min_length=50):
+def local_generate(prompt_text: str, max_new_tokens=256, min_length=50):
     global custom_model_path, tokenizer, model
     """
     使用本地模型生成文本
