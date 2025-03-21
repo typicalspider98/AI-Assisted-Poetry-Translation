@@ -5,7 +5,7 @@ import numpy as np
 # 连接 Redis
 r = redis.Redis(host="localhost", port=6379, db=0)
 
-def backup_redis(file_path="redis_backup_v1.0.json"):
+def backup_redis(file_path="0-redis_backup_bge-base-en-v1.5.json"):
     """
     备份 Redis 数据，将所有键值存入 JSON 文件
     """
