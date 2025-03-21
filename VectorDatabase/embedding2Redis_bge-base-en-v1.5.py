@@ -9,7 +9,7 @@ from transformers import AutoTokenizer, AutoModel
 r = redis.Redis(host="localhost", port=6379, db=0)
 
 # 加载 BGE 模型
-MODEL_PATH = "./models/bge-base-en-v1.5"
+MODEL_PATH = "./models/bge-base-en-v1.5"  # database id: 0
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModel.from_pretrained(MODEL_PATH)
 
