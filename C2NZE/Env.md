@@ -1,5 +1,7 @@
 ## Conda环境配置步骤
 
+
+
 ```shell
 # 1. 创建并激活Conda环境
 conda create -n deepseek-r1 python=3.10
@@ -18,5 +20,9 @@ pip install gradio
 pip install bitsandbytes
 ```
 
-4. 验证环境
-python -c "import torch; print(torch.cuda.is_available())"  # 输出应为True
+一行执行
+
+```shell
+conda create -n deepseek-r1 python=3.10 -y && conda activate deepseek-r1 && conda install pytorch==2.1.2 torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y && pip install transformers accelerate bitsandbytes sentencepiece "numpy<2" openai gradio
+```
+
