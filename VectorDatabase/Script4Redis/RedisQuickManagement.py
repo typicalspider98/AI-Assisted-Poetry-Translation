@@ -10,6 +10,8 @@ REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 DOCKER_CONTAINER_NAME = "redis-server_NZDdictionary"
 
+VECTOR_JSON_FOLDER = "vectordatabases"
+
 def start_docker_container():
     try:
         result = subprocess.run([
@@ -102,23 +104,40 @@ def clear_database(db=0):
     r.flushdb()
     print(f"🗑️ 数据库 {db} 已清空")
 
-def import_from_json_folder(json_folder, db=0):
-    r = connect_to_redis(db)
-    files = [f for f in os.listdir(json_folder) if f.endswith(".json")]
-    print(f"📁 发现 {len(files)} 个 JSON 文件，开始导入...")
+def import_all_from_vector_folder():
+    folder = VECTOR_JSON_FOLDER
+    if not os.path.exists(folder):
+        print(f"❌ 文件夹不存在: {folder}")
+        return
+
+    files = [f for f in os.listdir(folder) if f.endswith(".json") and f[0].isdigit()]
+    if not files:
+        print("⚠️ 未发现符合命名规则的 JSON 文件。格式示例：0-xxx.json")
+        return
+
     for file in files:
-        path = os.path.join(json_folder, file)
+        db_index = int(file.split("-")[0])
+        r = connect_to_redis(db_index)
+        if r.dbsize() > 0:
+            print(f"⛔ 数据库 {db_index} 非空，已跳过导入文件: {file}")
+            continue
+
+        path = os.path.join(folder, file)
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        for entry in data:
-            word = entry["word"]
-            for idx, definition in enumerate(entry["definitions"]):
-                key = f"{word}-{idx}"
-                content = definition.get("meaning", "") or " ".join(definition.get("examples", []))
-                if content:
-                    r.set(key, content)
-                    print(f"✅ 写入 {key}")
-    print("🎉 所有文件已导入")
+
+        if not isinstance(data, dict):
+            print(f"❌ 文件 {file} 格式错误，预期为包含 key: value 的字典，已跳过。")
+            continue
+
+        print(f"📥 开始导入 {file} 到数据库 {db_index}...")
+        for key, hex_value in data.items():
+            try:
+                binary_value = bytes.fromhex(hex_value)
+                r.set(key, binary_value)
+            except Exception as e:
+                print(f"⚠️ 跳过无效 key '{key}'，原因: {e}")
+        print(f"✅ 文件 {file} 导入完成")
 
 def show_menu():
     print("\n🔧 Redis 数据库管理菜单：")
@@ -126,7 +145,7 @@ def show_menu():
     print("2. 查看指定 Key 的向量内容（已解码）")
     print("3. 查看当前各数据库的数据量和示例向量")
     print("4. 清空指定数据库")
-    print("5. 从文件夹导入 JSON 数据到数据库")
+    print("5. 自动导入 vectordatabases 文件夹中的 JSON 到对应数据库")
     print("0. 退出程序")
 
 if __name__ == "__main__":
@@ -147,8 +166,6 @@ if __name__ == "__main__":
             db = int(input("请输入要清空的数据库编号 (0~15)："))
             clear_database(db)
         elif choice == "5":
-            folder = input("请输入 JSON 文件夹路径：")
-            db = int(input("请输入目标数据库编号 (0~15)："))
-            import_from_json_folder(folder, db)
+            import_all_from_vector_folder()
         else:
             print("⚠️ 无效的选项，请重新输入。")
