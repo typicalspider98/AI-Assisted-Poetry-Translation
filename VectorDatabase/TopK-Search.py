@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 
 # 连接 Redis
-r = redis.Redis(host="localhost", port=6379, db=0)
+r = redis.Redis(host="localhost", port=6379, db=2)
 
 # 加载 BGE 模型
 MODEL_PATH = "./models/bge-base-en-v1.5"
