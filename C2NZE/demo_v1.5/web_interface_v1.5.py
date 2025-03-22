@@ -35,7 +35,7 @@ with gr.Blocks() as demo:
 
     # 第二行：用户选择模型路径 & 设定 Token
     with gr.Row():
-        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
+        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-1.5B")
         btn_select_model = gr.Button("选择本地模型文件夹 | Select the local model folder")  # 使用 tkinter 选择文件夹
         btn_set_model_path = gr.Button("确认模型路径 | Confirm the model path")  # 确认最终路径
         model_path_status = gr.Textbox(label="模型路径状态 | Model Path Status", interactive=False)
