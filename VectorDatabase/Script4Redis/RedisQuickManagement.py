@@ -11,6 +11,7 @@ REDIS_PORT = 6379
 DOCKER_CONTAINER_NAME = "redis-server_NZDdictionary"
 
 VECTOR_JSON_FOLDER = "vectordatabases"
+BACKUP_FOLDER = "redis-backup"
 
 def start_docker_container():
     try:
@@ -71,10 +72,16 @@ def show_vector_by_key():
         return
     value = r.get(key)
     try:
-        vector = np.frombuffer(value, dtype=np.float32)
-        print(f"🔍 key '{key}' 的向量维度: {vector.shape[0]}，前5项: {vector[:5]}")
+        if db == 0:
+            # 展示 JSON 字典释义
+            data = json.loads(value)
+            print(f"📘 key '{key}' 的释义内容：")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+        else:
+            vector = np.frombuffer(value, dtype=np.float32)
+            print(f"🔍 key '{key}' 的向量维度: {vector.shape[0]}，前5项: {vector[:5]}")
     except Exception:
-        print(f"⚠️ key '{key}' 的值无法转换为向量")
+        print(f"⚠️ key '{key}' 的值无法解析")
 
 def show_database_summary():
     print("📊 当前 Redis 数据库使用情况：")
@@ -90,10 +97,15 @@ def show_database_summary():
                 if example_key:
                     value = r.get(example_key)
                     try:
-                        vector = np.frombuffer(value, dtype=np.float32)
-                        print(f"    🔍 示例 key: {example_key.decode('utf-8')}，向量维度: {vector.shape[0]}，前5项: {vector[:5]}")
+                        if db_index == 0:
+                            decoded = json.loads(value)
+                            print(f"    📘 示例 key: {example_key.decode('utf-8')} 是词典释义记录")
+                            print(json.dumps(decoded, indent=2, ensure_ascii=False))
+                        else:
+                            vector = np.frombuffer(value, dtype=np.float32)
+                            print(f"    🔍 示例 key: {example_key.decode('utf-8')}，向量维度: {vector.shape[0]}，前5项: {vector[:5]}")
                     except Exception:
-                        print(f"    ⚠️ 示例 key: {example_key.decode('utf-8')} 不是有效的向量格式")
+                        print(f"    ⚠️ 示例 key: {example_key.decode('utf-8')} 不是有效格式")
         except redis.ConnectionError:
             print(f"❌ 无法连接数据库 {db_index}")
     if not any_data:
@@ -112,14 +124,15 @@ def import_all_from_vector_folder():
 
     files = [f for f in os.listdir(folder) if f.endswith(".json") and f[0].isdigit()]
     if not files:
-        print("⚠️ 未发现符合命名规则的 JSON 文件。格式示例：0-xxx.json")
+        print("⚠️ 未发现符合命名规则的 JSON 文件。格式示例：0-definitions.json 或 1-vectors.json")
         return
 
     for file in files:
         db_index = int(file.split("-")[0])
         r = connect_to_redis(db_index)
+
         if r.dbsize() > 0:
-            print(f"⛔ 数据库 {db_index} 非空，已跳过导入文件: {file}")
+            print(f"⛔ 数据库 {db_index} 非空，跳过导入文件: {file}")
             continue
 
         path = os.path.join(folder, file)
@@ -127,25 +140,60 @@ def import_all_from_vector_folder():
             data = json.load(f)
 
         if not isinstance(data, dict):
-            print(f"❌ 文件 {file} 格式错误，预期为包含 key: value 的字典，已跳过。")
+            print(f"❌ 文件格式错误（不是 dict）：{file}，跳过。")
             continue
 
-        print(f"📥 开始导入 {file} 到数据库 {db_index}...")
-        for key, hex_value in data.items():
+        print(f"📥 正在导入 {file} 到数据库 {db_index}...")
+
+        for key, value in data.items():
             try:
-                binary_value = bytes.fromhex(hex_value)
-                r.set(key, binary_value)
+                if db_index == 0:
+                    if isinstance(value, dict):
+                        r.set(key, json.dumps(value, ensure_ascii=False))
+                        print(f"📘 [释义] 导入 key: {key}")
+                    else:
+                        print(f"⚠️ 非法释义结构，已跳过 key: {key}")
+                else:
+                    binary_value = bytes.fromhex(value)
+                    r.set(key, binary_value)
+                    print(f"📦 [向量] 导入 key: {key}")
             except Exception as e:
-                print(f"⚠️ 跳过无效 key '{key}'，原因: {e}")
+                print(f"⚠️ 跳过 key: {key}，原因: {e}")
+
         print(f"✅ 文件 {file} 导入完成")
+
+def export_database_to_file():
+    db = int(input("请输入要导出的数据库编号 (0~15)："))
+    r = connect_to_redis(db)
+    if not os.path.exists(BACKUP_FOLDER):
+        os.makedirs(BACKUP_FOLDER)
+    output_path = os.path.join(BACKUP_FOLDER, f"{db}-backup.json")
+    all_data = {}
+    for key in r.scan_iter():
+        value = r.get(key)
+        try:
+            key_str = key.decode("utf-8")
+            if db == 0:
+                # JSON string value
+                decoded_value = json.loads(value)
+                all_data[key_str] = decoded_value
+            else:
+                # vector stored as bytes, export as hex
+                all_data[key_str] = value.hex()
+        except Exception as e:
+            print(f"⚠️ 跳过 key: {key}，原因: {e}")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    print(f"💾 数据库 {db} 已备份至 {output_path}")
 
 def show_menu():
     print("\n🔧 Redis 数据库管理菜单：")
     print("1. 检查 Redis 服务是否运行")
-    print("2. 查看指定 Key 的向量内容（已解码）")
-    print("3. 查看当前各数据库的数据量和示例向量")
+    print("2. 查看指定 Key 的内容（释义或向量）")
+    print("3. 查看当前各数据库的数据量和示例记录")
     print("4. 清空指定数据库")
     print("5. 自动导入 vectordatabases 文件夹中的 JSON 到对应数据库")
+    print("6. 导出指定数据库内容到 redis-backup 文件夹")
     print("0. 退出程序")
 
 if __name__ == "__main__":
@@ -167,5 +215,7 @@ if __name__ == "__main__":
             clear_database(db)
         elif choice == "5":
             import_all_from_vector_folder()
+        elif choice == "6":
+            export_database_to_file()
         else:
             print("⚠️ 无效的选项，请重新输入。")
