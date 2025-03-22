@@ -18,6 +18,9 @@ pip install "numpy<2"  # 安装NumPy 1.x版本
 pip install openai
 pip install gradio
 pip install bitsandbytes
+
+pip install gradio_checkboxgroupmarkdown
+
 ```
 
 一行执行
