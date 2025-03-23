@@ -195,25 +195,13 @@ def render_checkbox_groups_by_keyword(all_data: list):
     return updates
 
 
-def collect_grouped_markdown_selection(group_values: List[List[str]], all_data: List[Dict]) -> str:
+def collect_grouped_markdown_selection(*args) -> str:
     """
-    收集多个 CheckboxGroupMarkdown 的勾选结果，并按关键词整理输出。
-    参数：
-        - group_values: [[id1, id2], [id3], ...]，对应每个关键词下用户勾选的词项 ID
-        - all_data: query_related_terms_from_redis 返回的结构化结果（关键词 + topk 相关词）
+    接收 N 个 Markdown checkbox 的 .value（List[str]），以及 all_data（List[Dict]）
 
-    返回：
-        JSON 字符串：
-        {
-            "moon": [
-                {
-                    "word": "moonlight",
-                    "explanation": "...",
-                    "examples": [...]
-                }
-            ]
-        }
+    args = [cb1_value, cb2_value, ..., all_data]
     """
+    *group_values, all_data = args
     result = {}
 
     for i, selected_ids in enumerate(group_values):
@@ -237,6 +225,7 @@ def collect_grouped_markdown_selection(group_values: List[List[str]], all_data: 
                 })
 
     return json.dumps(result, ensure_ascii=False, indent=2)
+
 
 
 
