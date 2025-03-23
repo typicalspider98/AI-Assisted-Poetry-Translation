@@ -4,7 +4,7 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 
 # 连接 Redis
-r = redis.Redis(host="localhost", port=6379, db=2)
+r = redis.Redis(host="localhost", port=6379, db=1)
 
 # 加载 BGE 模型
 MODEL_PATH = "./models/bge-base-en-v1.5"
@@ -42,7 +42,7 @@ def search_topk_similar(query, top_k=5):
 
 
 if __name__ == "__main__":
-    query = "I like wear gumboot"  # 测试查询词
+    query = "homesick"  # 测试查询词
     # query = "bright moon"  # 测试查询词
     results = search_topk_similar(query, top_k=5)
     print("🔍 最相似的词条:")
