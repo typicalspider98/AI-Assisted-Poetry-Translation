@@ -60,6 +60,7 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 5, model_id: int 
 # === 功能模块 ===
 
 def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
+    '''
     prompt = (
         "你是一位精通中文古典诗歌与英语文化的翻译顾问。\n"
         "请根据下列诗歌内容提取5~8个用于指导英文翻译的关键词或意象短语，\n"
@@ -67,6 +68,19 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
         "并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
         "JSON 示例格式如下：\n"
         "{\n  \"keywords\": [\n    \"moonlight\",\n    \"bed\",\n    \"homesickness\"\n  ]\n}\n\n"
+        f"诗歌原文：{poem_text}"
+    ).strip()
+    '''
+    prompt = (
+        "你是一位精通中文古典诗歌与英语文化的翻译顾问。\n"
+        "请根据下列诗歌内容及长度提取适量的关键词，用于指导英文翻译。\n"
+        "要求:\n"
+        "1.不要逐句照搬原诗句，结合诗歌原意和意境，提取其中可用于翻译的核心主题词，包括动词、名词、形容词、副词等，以及意象和文化概念。\n"
+        "2.在不破坏诗歌本意和意境的前提下，提取的主题词是按中文诗歌韵律和语义停顿划分出的最小语素和词语，特殊情况下为不破坏诗歌整体含义也可以是中文短语。\n"
+        "3.主题词包括所有意象，并最终以准确简明的英文单词展示。\n"
+        "4.并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
+        "JSON 示例格式如下：\n"
+        "{\n  \"keywords\": [\n    \"word1\",\n    \"word2\",\n    \"word3\"\n  ]\n}\n\n"
         f"诗歌原文：{poem_text}"
     ).strip()
     return prompt
@@ -89,7 +103,8 @@ def extract_keywords_with_llm(prompt_text: str, max_new_tokens: int = 128) -> st
             return match.group(1)
             write_log(f"[JSON解析成功] {match.group(1)}")
         else:
-            return "{}"
+            # return "{}"
+            return response
     except Exception as e:
         print(f"[JSON解析失败] {e}")
         write_log(f"[JSON解析失败] {e}")
