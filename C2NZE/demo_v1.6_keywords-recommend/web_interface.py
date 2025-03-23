@@ -50,15 +50,19 @@ with gr.Blocks() as demo:
         btn_submit_boss_model = gr.Button("提交到本地Boss模型")
         textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0", lines=8)
 
+    # 设置关键词提示 Token 长度
+    with gr.Row():
+        keyword_token_limit = gr.Textbox(label="关键词提示 Token 上限", value="128")
+
     # 提取关键词提示词
     with gr.Row():
         btn_gen_prompt_keywords = gr.Button("生成关键词提取提示词")
-        textbox_prompt_keywords = gr.Textbox(label="关键词提示词 Prompt", lines=6)
+        textbox_prompt_keywords = gr.Textbox(label="关键词提示词 Prompt", interactive=True, lines=6)
 
     # 调用 LLM 提取关键词
     with gr.Row():
         btn_get_keywords = gr.Button("使用本地模型提取关键词")
-        textbox_keywords_json = gr.Textbox(label="关键词 JSON", lines=4)
+        textbox_keywords_json = gr.Textbox(label="关键词 JSON", interactive=True, lines=4)
 
     # 查询向量数据库 TopK
     with gr.Row():
@@ -97,17 +101,18 @@ with gr.Blocks() as demo:
     btn_submit_revision.click(fn=translation_logic.call_deepseek_api, inputs=textbox_prompt0, outputs=textbox_translation2)
     btn_loop_review.click(fn=translation_logic.review_translation_with_boss, inputs=[textbox_prompt0, textbox_translation2], outputs=textbox_review)
 
-    # 关键词提取逻辑
-    def build_prompt(poem):
-        return (
-            f"你是一位精通中文古典诗歌与英语文化的翻译顾问。\n"
-            f"请根据下列诗歌内容提取5~8个用于指导英文翻译的关键词或意象短语，\n"
-            f"并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n\n"
-            f"诗歌原文：{poem}"
-        )
+    btn_gen_prompt_keywords.click(
+        fn=lambda poem, limit: semantic_helper.build_keyword_prompt(poem, int(limit)),
+        inputs=[input_poetry, keyword_token_limit],
+        outputs=textbox_prompt_keywords
+    )
 
-    btn_gen_prompt_keywords.click(fn=build_prompt, inputs=input_poetry, outputs=textbox_prompt_keywords)
-    btn_get_keywords.click(fn=semantic_helper.extract_keywords_with_llm, inputs=input_poetry, outputs=textbox_keywords_json)
+    btn_get_keywords.click(
+        fn=lambda prompt_text, limit: semantic_helper.extract_keywords_with_llm(prompt_text, int(limit)),
+        inputs=[textbox_prompt_keywords, keyword_token_limit],
+        outputs=textbox_keywords_json
+    )
+
 
     btn_query_redis.click(
         fn=lambda json_text: gr.update(
