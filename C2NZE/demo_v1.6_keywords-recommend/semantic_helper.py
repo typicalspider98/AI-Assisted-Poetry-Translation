@@ -56,15 +56,20 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 5, model_id: int 
 
 # === 功能模块 ===
 
-def extract_keywords_with_llm(poem_text: str) -> str:
-    prompt = f"""
-你是一位精通中文古典诗歌与英语文化的翻译顾问。
-请根据下列诗歌内容提取5~8个用于指导英文翻译的关键词或意象短语，
-并返回 JSON 格式，关键词应具有翻译价值与文化象征性。
+def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
+    prompt = (
+        "你是一位精通中文古典诗歌与英语文化的翻译顾问。\n"
+        "请根据下列诗歌内容提取5~8个用于指导英文翻译的关键词或意象短语，\n"
+        "请不要逐句照搬原诗句，而是提取其中可用于翻译时的意象、文化概念或核心主题词。\n"
+        "并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
+        "JSON 示例格式如下：\n"
+        "{\n  \"keywords\": [\n    \"moonlight\",\n    \"bed\",\n    \"homesickness\"\n  ]\n}\n\n"
+        f"诗歌原文：{poem_text}"
+    ).strip()
+    return prompt
 
-诗歌原文：{poem_text}
-""".strip()
-    response = call_local_qwen_with_instruction(prompt)
+def extract_keywords_with_llm(prompt_text: str, max_new_tokens: int = 128) -> str:
+    response = call_local_qwen_with_instruction(prompt_text, max_new_tokens=max_new_tokens)
     return response
 
 
