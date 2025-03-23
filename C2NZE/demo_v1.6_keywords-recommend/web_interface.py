@@ -1,7 +1,6 @@
 import gradio as gr
 import translation_logic
-import semantic_helper  # 新增导入
-from gradio_checkboxgroupmarkdown import CheckboxGroupMarkdown
+import semantic_helper
 import json
 
 try:
@@ -11,6 +10,7 @@ try:
 except ImportError:
     USE_TKINTER = False
 
+from gradio_checkboxgroupmarkdown import CheckboxGroupMarkdown
 
 def select_model_folder():
     if USE_TKINTER:
@@ -20,77 +20,74 @@ def select_model_folder():
         return folder_selected if folder_selected else "未选择文件夹 | No folder selected"
     return "请手动输入模型路径 | Please enter the model path manually"
 
-
 with gr.Blocks() as demo:
-    gr.Markdown("## 中文古诗翻译（Qwen + DeepSeek 多轮交互示例）\n"
-                "## Chinese Classical Poetry Translation (Qwen + DeepSeek Multi-round Interaction Example)\n"
-                "注意：所有交互日志将保存在 logs 文件夹中。\nNote: All interaction logs will be saved in the logs folder.")
+    gr.Markdown("## 中文古诗翻译（Qwen + DeepSeek 多轮交互示例）")
 
-    # 输入诗歌 + 提示词生成
+    # ==== 输入区域 ====
     with gr.Row():
-        input_poetry = gr.Textbox(label="诗歌输入 Poetry input", lines=6, value="《静夜思》\n床前明月光，疑是地上霜。举头望明月，低头思故乡。")
-        btn_get_instruction = gr.Button("生成初始提示文本 | Generate initial prompt text")
-        textbox_instruction = gr.Textbox(label="翻译提示文本（可编辑）| Prompt text (editable)", lines=8)
+        input_poetry = gr.Textbox(label="诗歌输入", lines=6, value="《静夜思》\n床前明月光，疑是地上霜。举头望明月，低头思故乡。")
+        btn_get_instruction = gr.Button("生成初始提示文本")
+        textbox_instruction = gr.Textbox(label="翻译提示文本（可编辑）", lines=8)
 
-    # 模型路径 + Token
     with gr.Row():
-        # model_path_display = gr.Textbox(label="当前模型路径", interactive=True)
-        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-1.5B")
-        btn_select_model = gr.Button("选择本地模型文件夹")
+        model_path_display = gr.Textbox(label="当前模型路径", interactive=True, value="/your/model/path")
+        btn_select_model = gr.Button("选择模型文件夹")
         btn_set_model_path = gr.Button("确认模型路径")
         model_path_status = gr.Textbox(label="模型路径状态", interactive=False)
 
     with gr.Row():
-        model_token_input = gr.Textbox(label="本地模型Token上限")
-        btn_set_model_token = gr.Button("设置本地模型 Token")
-        model_token_status = gr.Textbox(label="模型token状态", interactive=False)
+        model_token_input = gr.Textbox(label="模型Token上限")
+        btn_set_model_token = gr.Button("设置Token")
+        model_token_status = gr.Textbox(label="Token设置结果", interactive=False)
 
-    # 本地提示词生成
     with gr.Row():
         btn_submit_boss_model = gr.Button("提交到本地Boss模型")
         textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0", lines=8)
 
-    # 设置关键词提示 Token 长度
+    # ==== 关键词区域 ====
     with gr.Row():
         keyword_token_limit = gr.Textbox(label="关键词提示 Token 上限", value="128")
-
-    # 提取关键词提示词
-    with gr.Row():
         btn_gen_prompt_keywords = gr.Button("生成关键词提取提示词")
-        textbox_prompt_keywords = gr.Textbox(label="关键词提示词 Prompt", interactive=True, lines=6)
-
-    # 调用 LLM 提取关键词
-    with gr.Row():
-        btn_get_keywords = gr.Button("使用本地模型提取关键词")
-        textbox_keywords_json = gr.Textbox(label="关键词 JSON", interactive=True, lines=4)
-
-    # 查询向量数据库 TopK
-    with gr.Row():
-        btn_query_redis = gr.Button("查询向量数据库（TopK）")
-        checkbox_related_terms = CheckboxGroupMarkdown(choices=[], label="相关新西兰用词选择 | Select related NZ terms")
-
-    # 注入关键词并生成新 Prompt
-    with gr.Row():
-        btn_inject_keywords = gr.Button("注入关键词")
-        textbox_final_prompt = gr.Textbox(label="注入后的提示词", lines=8)
-
-    # 翻译流程
-    with gr.Row():
-        textbox_translation1 = gr.Textbox(label="DeepSeek返回的Translation1", lines=8)
-        btn_submit_prompt = gr.Button("提交 Prompt0 给 DeepSeek")
+        textbox_prompt_keywords = gr.Textbox(label="关键词提示词", lines=6)
 
     with gr.Row():
-        textbox_review = gr.Textbox(label="Qwen审查意见（可编辑）", lines=8)
-        btn_call_ds_review = gr.Button("提交翻译审查")
+        btn_get_keywords = gr.Button("提取关键词")
+        textbox_keywords_json = gr.Textbox(label="关键词 JSON", lines=4)
 
-    with gr.Row():
-        textbox_translation2 = gr.Textbox(label="DeepSeek返回的Translation2", lines=8)
-        btn_submit_revision = gr.Button("修订后提交给 DS")
+    # ==== 查询 & 分组展示区 ====
+    btn_query_redis = gr.Button("查询向量数据库（TopK）")
+    all_related_data = gr.State([])
 
-    with gr.Row():
-        btn_loop_review = gr.Button("再次提交审查（循环）")
+    # 最多展示 10 个关键词的相关词推荐
+    checkbox_groups = [
+        CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 的相关词", visible=False)
+        for i in range(10)
+    ]
 
-    # 功能绑定
+    with gr.Column() as grouped_checkboxes_display:
+        for cb in checkbox_groups:
+            pass  # cb.render()
+
+    # ==== 勾选 & 注入 ====
+    btn_confirm_selection = gr.Button("确认选择关键词与相关词")
+    textbox_selected_summary = gr.Textbox(label="最终选择结果（含说明和例句）", lines=12)
+
+    btn_inject_keywords = gr.Button("注入关键词")
+    textbox_final_prompt = gr.Textbox(label="注入后的提示词", lines=8)
+
+    # ==== 翻译 + 审查 ====
+    textbox_translation1 = gr.Textbox(label="DeepSeek返回的Translation1", lines=8)
+    btn_submit_prompt = gr.Button("提交 Prompt0 给 DeepSeek")
+
+    textbox_review = gr.Textbox(label="Qwen审查意见（可编辑）", lines=8)
+    btn_call_ds_review = gr.Button("提交翻译审查")
+
+    textbox_translation2 = gr.Textbox(label="DeepSeek返回的Translation2", lines=8)
+    btn_submit_revision = gr.Button("修订后提交给 DS")
+
+    btn_loop_review = gr.Button("再次提交审查（循环）")
+
+    # ==== 功能绑定 ====
     btn_select_model.click(fn=select_model_folder, inputs=[], outputs=model_path_display)
     btn_set_model_path.click(fn=translation_logic.set_model_path, inputs=model_path_display, outputs=model_path_status)
     btn_set_model_token.click(fn=translation_logic.set_local_model_token, inputs=model_token_input, outputs=model_token_status)
@@ -113,20 +110,27 @@ with gr.Blocks() as demo:
         outputs=textbox_keywords_json
     )
 
-
+    # 查询相关词并更新分组勾选框
     btn_query_redis.click(
-        fn=lambda json_text: gr.update(
-            choices=semantic_helper.query_related_terms_from_redis(
-                semantic_helper.display_keyword_options(json_text)
-            )
-        ),
+        fn=semantic_helper.query_related_terms_from_redis,
         inputs=textbox_keywords_json,
-        outputs=checkbox_related_terms
+        outputs=all_related_data
+    ).then(
+        fn=semantic_helper.render_checkbox_groups_by_keyword,
+        inputs=all_related_data,
+        outputs=checkbox_groups
+    )
+
+    # 收集用户勾选项并展示为结构化 JSON
+    btn_confirm_selection.click(
+        fn=semantic_helper.collect_grouped_markdown_selection,
+        inputs=checkbox_groups + [all_related_data],
+        outputs=textbox_selected_summary
     )
 
     btn_inject_keywords.click(
         fn=semantic_helper.inject_keywords_into_prompt,
-        inputs=[textbox_prompt0, checkbox_related_terms],
+        inputs=[textbox_prompt0, textbox_selected_summary],
         outputs=textbox_final_prompt
     )
 

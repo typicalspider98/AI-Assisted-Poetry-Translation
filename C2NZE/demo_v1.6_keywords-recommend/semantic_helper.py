@@ -1,6 +1,10 @@
 import json
 import re
-from typing import List, Dict
+from typing import List, Dict, Tuple
+
+import gradio as gr
+from gradio_checkboxgroupmarkdown import CheckboxGroupMarkdown
+
 
 import redis
 import numpy as np
@@ -8,7 +12,6 @@ import torch
 from transformers import AutoTokenizer, AutoModel
 
 from translation_logic import call_local_qwen_with_instruction
-
 from translation_logic import write_log
 
 
@@ -125,41 +128,134 @@ def display_keyword_options(json_text: str) -> List[str]:
         return []
 
 
-def query_related_terms_from_redis(keywords: List[str], top_k: int = 5, model_id: int = 1) -> List[Dict]:
-    results = []
+def query_related_terms_from_redis(json_text: str, top_k: int = 5, model_id: int = 1) -> List[Dict]:
+    keywords = display_keyword_options(json_text)  # 从 JSON 提取关键词
+    all_data = []
+
     for kw in keywords:
+        related_items = []
         topk = search_topk_similar_batch([kw], top_k=top_k, model_id=model_id)
+
         for i, (redis_key, score) in enumerate(topk):
             word_base = redis_key.split("-")[0]
+            meaning, example_text = "(无解释)", ["(无例句)"]
 
-            # 从 db=0 查询解释信息
             dict_data_raw = redis_dict.get(redis_key)
-            meaning, example_text = "(无解释)", "(无例句)"
             if dict_data_raw:
                 try:
                     dict_data = json.loads(dict_data_raw)
                     meaning = dict_data.get("meaning", meaning)
                     examples = dict_data.get("examples", [])
                     if isinstance(examples, list):
-                        example_text = "\n".join(examples[:2])
+                        example_text = examples[:2]
                 except Exception:
                     pass
 
-            content = f"### Explanation\n{meaning}\n\n### Example\n{example_text}"
+            related_items.append({
+                "word": word_base,
+                "explanation": meaning,
+                "examples": example_text,
+                "redis_key": redis_key,
+                "score": score
+            })
 
-            results.append({
-                "id": f"{kw}_{i}",
-                "title": word_base,
-                "content": content,
+        all_data.append({
+            "keyword": kw,
+            "topk": related_items
+        })
+
+    return all_data  # ⚠️ 仅返回纯 JSON，不要包含组件
+
+def render_checkbox_groups_by_keyword(all_data: list):
+    """
+    输入：结构化关键词数据
+    输出：List[gr.update]，用于更新预定义的 Markdown CheckboxGroup
+    """
+    updates = []
+
+    for i, item in enumerate(all_data):
+        keyword = item.get("keyword", f"关键词{i+1}")
+        topk = item.get("topk", [])
+        choices = []
+
+        for j, entry in enumerate(topk):
+            choices.append({
+                "id": f"{i}_{j}",
+                "title": entry["word"],
+                "content": f"### Explanation\n{entry['explanation']}\n\n### Example\n" + "\n".join(entry["examples"]),
                 "selected": False
             })
-    return results
+
+        updates.append(gr.update(choices=choices, visible=True, label=f"{keyword} 的相关词推荐"))
+
+    # 若不足 10 个，隐藏多余组件
+    while len(updates) < 10:
+        updates.append(gr.update(choices=[], visible=False, label=""))
+
+    return updates
 
 
-def inject_keywords_into_prompt(prompt: str, selected_items: List[Dict]) -> str:
-    selected_titles = [item["title"] for item in selected_items]
-    context = "以下是与翻译相关的新西兰文化关键词：\n" + ", ".join(selected_titles) + "\n请结合这些信息进行翻译。"
+def collect_grouped_markdown_selection(group_values: List[List[str]], all_data: List[Dict]) -> str:
+    """
+    收集多个 CheckboxGroupMarkdown 的勾选结果，并按关键词整理输出。
+    参数：
+        - group_values: [[id1, id2], [id3], ...]，对应每个关键词下用户勾选的词项 ID
+        - all_data: query_related_terms_from_redis 返回的结构化结果（关键词 + topk 相关词）
+
+    返回：
+        JSON 字符串：
+        {
+            "moon": [
+                {
+                    "word": "moonlight",
+                    "explanation": "...",
+                    "examples": [...]
+                }
+            ]
+        }
+    """
+    result = {}
+
+    for i, selected_ids in enumerate(group_values):
+        if i >= len(all_data):
+            continue
+        keyword = all_data[i].get("keyword", f"关键词{i+1}")
+        topk_items = all_data[i].get("topk", [])
+
+        id_to_entry = {
+            f"{i}_{j}": entry for j, entry in enumerate(topk_items)
+        }
+
+        result[keyword] = []
+        for id_ in selected_ids:
+            entry = id_to_entry.get(id_)
+            if entry:
+                result[keyword].append({
+                    "word": entry["word"],
+                    "explanation": entry["explanation"],
+                    "examples": entry["examples"]
+                })
+
+    return json.dumps(result, ensure_ascii=False, indent=2)
+
+
+
+
+
+def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
+    try:
+        selected_items = json.loads(selected_json)
+    except Exception as e:
+        return prompt + "\n\n⚠️ [关键词注入失败] JSON 解析错误"
+
+    context_parts = []
+    for keyword, entries in selected_items.items():
+        terms = [f"{entry['word']} ({entry['explanation']})" for entry in entries]
+        context_parts.append(f"{keyword}: " + ", ".join(terms))
+
+    context = "以下是与翻译相关的新西兰文化关键词及释义：\n" + "\n".join(context_parts)
     return prompt.strip() + "\n\n" + context
+
 
 
 if __name__ == "__main__":
