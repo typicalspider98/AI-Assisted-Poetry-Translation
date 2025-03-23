@@ -64,9 +64,14 @@ with gr.Blocks() as demo:
         for i in range(10)
     ]
 
+    accordion_containers = []  # 保存 Accordion 容器引用
+
     with gr.Column() as grouped_checkboxes_display:
-        for cb in checkbox_groups:
-            pass  # cb.render()
+        for i in range(10):
+            with gr.Accordion(f"关键词组 {i+1}", open=False) as acc:
+                checkbox_groups[i]  # ✅ 不调用 render，直接注册
+            accordion_containers.append(acc)
+
 
     # ==== 勾选 & 注入 ====
     btn_confirm_selection = gr.Button("确认选择关键词与相关词")

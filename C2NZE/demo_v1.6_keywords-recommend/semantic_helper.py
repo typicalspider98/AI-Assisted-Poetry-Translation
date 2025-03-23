@@ -168,8 +168,8 @@ def query_related_terms_from_redis(json_text: str, top_k: int = 5, model_id: int
 
 def render_checkbox_groups_by_keyword(all_data: list):
     """
-    输入：结构化关键词数据
-    输出：List[gr.update]，用于更新预定义的 Markdown CheckboxGroup
+    输入：query_related_terms_from_redis 的返回结果（关键词+相关词）
+    输出：List[gr.update(...)] 更新到每个 checkbox group（共10个）
     """
     updates = []
 
@@ -186,13 +186,17 @@ def render_checkbox_groups_by_keyword(all_data: list):
                 "selected": False
             })
 
-        updates.append(gr.update(choices=choices, visible=True, label=f"{keyword} 的相关词推荐"))
+        updates.append(gr.update(
+            choices=choices,
+            visible=True,
+            label=f"{keyword} 的相关词推荐"
+        ))
 
-    # 若不足 10 个，隐藏多余组件
     while len(updates) < 10:
         updates.append(gr.update(choices=[], visible=False, label=""))
 
     return updates
+
 
 
 def collect_grouped_markdown_selection(*args) -> str:
