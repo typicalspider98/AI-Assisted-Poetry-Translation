@@ -9,6 +9,9 @@ from transformers import AutoTokenizer, AutoModel
 
 from translation_logic import call_local_qwen_with_instruction
 
+from translation_logic import write_log
+
+
 # === Redis 数据库配置 ===
 redis_vec = redis.Redis(host="localhost", port=6379, db=2)  # 向量数据库
 redis_dict = redis.Redis(host="localhost", port=6379, db=0)  # 词典释义数据库
@@ -70,6 +73,27 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
 
 def extract_keywords_with_llm(prompt_text: str, max_new_tokens: int = 128) -> str:
     response = call_local_qwen_with_instruction(prompt_text, max_new_tokens=max_new_tokens)
+    
+    # 记录完整响应到日志
+    try:
+        # from translation_logic import write_log
+        write_log("[关键词提示完整返回]\n" + response)
+    except Exception:
+        print("[日志记录失败] 未能调用 write_log")
+
+    # 提取 markdown 中的 JSON 内容
+    try:
+        match = re.search(r"```json\s*({[\s\S]*?})\s*", response)
+        # match = re.search(r"```json\\s*(\\{[\\s\\S]*?\\})\\s*```", response)
+        if match:
+            return match.group(1)
+            write_log(f"[JSON解析成功] {match.group(1)}")
+        else:
+            return "{}"
+    except Exception as e:
+        print(f"[JSON解析失败] {e}")
+        write_log(f"[JSON解析失败] {e}")
+        return "{}"
     return response
 
 
