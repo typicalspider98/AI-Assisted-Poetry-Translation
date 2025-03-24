@@ -58,20 +58,14 @@ with gr.Blocks() as demo:
     btn_query_redis = gr.Button("查询向量数据库（TopK）")
     all_related_data = gr.State([])
 
-    # 最多展示 10 个关键词的相关词推荐
-    checkbox_groups = [
-        CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 的相关词", visible=False)
-        for i in range(10)
-    ]
-
-    accordion_containers = []  # 保存 Accordion 容器引用
+    # 最多展示 10 个关键词的相关词推荐（逐个定义并注册组件）
+    checkbox_groups = []
 
     with gr.Column() as grouped_checkboxes_display:
         for i in range(10):
-            with gr.Accordion(f"关键词组 {i+1}", open=False) as acc:
-                checkbox_groups[i]  # ✅ 不调用 render，直接注册
-            accordion_containers.append(acc)
-
+            with gr.Accordion(f"关键词组占位 {i+1}", open=False, elem_id=f"acc-label-{i}"):
+                cb = CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 的相关词", visible=False)
+                checkbox_groups.append(cb)
 
     # ==== 勾选 & 注入 ====
     btn_confirm_selection = gr.Button("确认选择关键词与相关词")
@@ -115,7 +109,6 @@ with gr.Blocks() as demo:
         outputs=textbox_keywords_json
     )
 
-    # 查询相关词并更新分组勾选框
     btn_query_redis.click(
         fn=semantic_helper.query_related_terms_from_redis,
         inputs=textbox_keywords_json,
@@ -126,7 +119,6 @@ with gr.Blocks() as demo:
         outputs=checkbox_groups
     )
 
-    # 收集用户勾选项并展示为结构化 JSON
     btn_confirm_selection.click(
         fn=semantic_helper.collect_grouped_markdown_selection,
         inputs=checkbox_groups + [all_related_data],

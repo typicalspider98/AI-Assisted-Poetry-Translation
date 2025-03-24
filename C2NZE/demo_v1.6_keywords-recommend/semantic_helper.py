@@ -231,6 +231,11 @@ def collect_grouped_markdown_selection(*args) -> str:
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
+def update_accordion_labels(all_related_data):
+    return [
+        gr.Accordion.update(label=f"关键词：{group['keyword']}", visible=True)
+        for group in all_related_data
+    ] + [gr.Accordion.update(visible=False)] * (10 - len(all_related_data))
 
 
 
