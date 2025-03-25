@@ -47,7 +47,7 @@ def get_embedding(text: str, model_id: int = 1):
     return embedding
 
 
-def search_topk_similar_batch(queries: List[str], top_k: int = 5, model_id: int = 1):
+def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 1):
     merged_query = ", ".join(queries)
     query_vector = get_embedding(merged_query, model_id)
     words = redis_vec.keys("*")
@@ -128,7 +128,7 @@ def display_keyword_options(json_text: str) -> List[str]:
         return []
 
 
-def query_related_terms_from_redis(json_text: str, top_k: int = 5, model_id: int = 1) -> List[Dict]:
+def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int = 1) -> List[Dict]:
     keywords = display_keyword_options(json_text)  # 从 JSON 提取关键词
     all_data = []
 
