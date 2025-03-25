@@ -58,14 +58,36 @@ with gr.Blocks() as demo:
     btn_query_redis = gr.Button("查询向量数据库（TopK）")
     all_related_data = gr.State([])
 
-    # 最多展示 10 个关键词的相关词推荐（逐个定义并注册组件）
+    # 最多展示 50 个关键词的相关词推荐（逐个定义并注册组件）
     checkbox_groups = []
+    accordion_blocks = []
 
-    with gr.Column() as grouped_checkboxes_display:
-        for i in range(10):
-            with gr.Accordion(f"关键词组占位 {i+1}", open=False, elem_id=f"acc-label-{i}"):
-                cb = CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 的相关词", visible=False)
-                checkbox_groups.append(cb)
+    grouped_checkboxes_display = gr.Column()
+
+    for i in range(50):
+        acc = gr.Accordion(f"关键词组 {i+1}", open=False, visible=False)
+        with acc:
+            with gr.Row():
+                cb_left = CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 左侧", visible=True)
+                cb_right = CheckboxGroupMarkdown(choices=[], label=f"关键词{i+1} 右侧", visible=True)
+
+            btn_close_title = gr.Button("⬆️ 收起此关键词组（返回上方）", variant="secondary")
+            btn_close_title.click(fn=lambda: gr.update(open=False), inputs=[], outputs=acc)
+
+            btn_next = gr.Button("🔽 查看下一个关键词组", variant="secondary")
+            def make_next_fn(index):
+                def inner():
+                    updates = [gr.update(open=False) if i == index else gr.update() for i in range(50)]
+                    if index + 1 < 50:
+                        updates[index + 1] = gr.update(open=True)
+                    return updates
+                return inner
+            btn_next.click(fn=make_next_fn(i), inputs=[], outputs=accordion_blocks)
+
+        checkbox_groups.append([cb_left, cb_right])
+        accordion_blocks.append(acc)
+        # checkbox_groups.append(cb)
+        # accordion_blocks.append(acc)
 
     # ==== 勾选 & 注入 ====
     btn_confirm_selection = gr.Button("确认选择关键词与相关词")
@@ -116,12 +138,17 @@ with gr.Blocks() as demo:
     ).then(
         fn=semantic_helper.render_checkbox_groups_by_keyword,
         inputs=all_related_data,
-        outputs=checkbox_groups
+        # outputs=checkbox_groups
+        outputs=[cb for pair in checkbox_groups for cb in pair]
+    ).then(
+        fn=lambda data: [gr.update(visible=i < len(data)) for i in range(50)],
+        inputs=all_related_data,
+        outputs=accordion_blocks
     )
 
     btn_confirm_selection.click(
         fn=semantic_helper.collect_grouped_markdown_selection,
-        inputs=checkbox_groups + [all_related_data],
+        inputs=[cb for pair in checkbox_groups for cb in pair] + [all_related_data],
         outputs=textbox_selected_summary
     )
 

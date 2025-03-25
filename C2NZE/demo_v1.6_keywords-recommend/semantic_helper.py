@@ -169,33 +169,44 @@ def query_related_terms_from_redis(json_text: str, top_k: int = 5, model_id: int
 def render_checkbox_groups_by_keyword(all_data: list):
     """
     输入：query_related_terms_from_redis 的返回结果（关键词+相关词）
-    输出：List[gr.update(...)] 更新到每个 checkbox group（共10个）
+    输出：List[List[gr.update, gr.update]] 对应每组的左右 checkbox 更新
     """
     updates = []
 
     for i, item in enumerate(all_data):
         keyword = item.get("keyword", f"关键词{i+1}")
         topk = item.get("topk", [])
-        choices = []
 
+        choices = []
         for j, entry in enumerate(topk):
             choices.append({
                 "id": f"{i}_{j}",
-                "title": entry["word"],
-                "content": f"### Explanation\n{entry['explanation']}\n\n### Example\n" + "\n".join(entry["examples"]),
+                "title": entry["explanation"],
+                "content": f"### {entry['word']}\n" + "\n".join(entry["examples"]),
                 "selected": False
             })
 
-        updates.append(gr.update(
-            choices=choices,
-            visible=True,
-            label=f"{keyword} 的相关词推荐"
-        ))
+        # 拆成左右两列（平均分）
+        half = (len(choices) + 1) // 2
+        left_choices = choices[:half]
+        right_choices = choices[half:]
 
-    while len(updates) < 10:
-        updates.append(gr.update(choices=[], visible=False, label=""))
+        updates.append([
+            gr.update(choices=left_choices, visible=True, label=f"{keyword}（左列）"),
+            gr.update(choices=right_choices, visible=True, label=f"{keyword}（右列）")
+        ])
 
-    return updates
+    # 如果不足50组，补空
+    while len(updates) < 50:
+        updates.append([
+            gr.update(choices=[], visible=False, label=""),
+            gr.update(choices=[], visible=False, label="")
+        ])
+
+    # 展平成一个 list：[左0, 右0, 左1, 右1, ...]
+    flat_updates = [item for pair in updates for item in pair]
+    return flat_updates
+
 
 
 
@@ -235,7 +246,7 @@ def update_accordion_labels(all_related_data):
     return [
         gr.Accordion.update(label=f"关键词：{group['keyword']}", visible=True)
         for group in all_related_data
-    ] + [gr.Accordion.update(visible=False)] * (10 - len(all_related_data))
+    ] + [gr.Accordion.update(visible=False)] * (50 - len(all_related_data))
 
 
 
@@ -257,6 +268,8 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
 
 
 if __name__ == "__main__":
+    print("this is not the file you should run.\nGo find web_interface.py")
+'''
     poem = "床前明月光，疑是地上霜。举头望明月，低头思故乡。"
     print("\n[1] 正在提取关键词...")
     keywords_json = extract_keywords_with_llm(poem)
@@ -273,3 +286,4 @@ if __name__ == "__main__":
     print("\n[4] 构造增强提示:")
     enriched_prompt = inject_keywords_into_prompt("请翻译这首诗：\n" + poem, related_terms[:3])
     print(enriched_prompt)
+'''
