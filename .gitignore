@@ -38,13 +38,7 @@ CMakeCache.txt
 *.key
 *.crt
 
-# ✅ 先允许 Git 追踪 logs/ 和 models/ 目录
-!logs/
-!log/
-!models/
-!model/
-
-# 🚀 再忽略 logs/ 和 models/ 目录内的所有文件
+# 🚀 忽略 logs/ 和 models/ 目录内的所有文件
 logs/*
 log/*
 models/*
@@ -55,3 +49,5 @@ model/*
 !log/.gitkeep
 !models/.gitkeep
 !model/.gitkeep
+C2NZE/models/DeepSeek-R1-Distill-Llama-8B
+C2NZE/demo_v1.5/logs/output_20250321_124109.md
