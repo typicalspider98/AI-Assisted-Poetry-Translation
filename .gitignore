@@ -43,11 +43,14 @@ logs/*
 log/*
 models/*
 model/*
+C2NZE/demo_v1.5/logs/*
+C2NZE/demo_v1.5/models/*
+
+
 
 # ✅ 但允许上传 .gitkeep 文件
 !logs/.gitkeep
 !log/.gitkeep
 !models/.gitkeep
 !model/.gitkeep
-C2NZE/models/DeepSeek-R1-Distill-Llama-8B
-C2NZE/demo_v1.5/logs/output_20250321_124109.md
+
