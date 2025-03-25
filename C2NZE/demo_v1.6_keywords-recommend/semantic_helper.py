@@ -127,6 +127,16 @@ def display_keyword_options(json_text: str) -> List[str]:
     except Exception:
         return []
 
+def extract_base_word(redis_key: str) -> str:
+    """
+    从 Redis key 中提取词条本体，剥去末尾的 -数字 部分（如 'gumboot-0' → 'gumboot'）
+    注意词条本身可能包含连字符（如 'bum-cheek salute-12'）
+    """
+    parts = redis_key.rsplit("-", 1)
+    if len(parts) == 2 and parts[1].isdigit():
+        return parts[0]
+    return redis_key  # fallback: key 不符合结构，直接返回原始 key
+
 
 def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int = 1) -> List[Dict]:
     keywords = display_keyword_options(json_text)  # 从 JSON 提取关键词
@@ -137,7 +147,9 @@ def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int
         topk = search_topk_similar_batch([kw], top_k=top_k, model_id=model_id)
 
         for i, (redis_key, score) in enumerate(topk):
-            word_base = redis_key.split("-")[0]
+            # word_base = redis_key.split("-")[0]  # wrong
+            # word_base = "-".join(redis_key.split("-")[:-1])  # not good enough
+            word_base = extract_base_word(redis_key)
             meaning, example_text = "(无解释)", ["(无例句)"]
 
             dict_data_raw = redis_dict.get(redis_key)
@@ -177,6 +189,8 @@ def render_checkbox_groups_by_keyword(all_data: list):
         keyword = item.get("keyword", f"关键词{i+1}")
         topk = item.get("topk", [])
 
+        # Debug: 打印相关词 word 列表
+        # print(f"[关键词 {i+1}] {keyword} 的相关词有：", [entry["word"] for entry in topk])
         choices = []
         for j, entry in enumerate(topk):
             choices.append({
