@@ -268,7 +268,7 @@ def update_accordion_labels(all_related_data):
 
 
 
-
+'''
 def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
     try:
         selected_items = json.loads(selected_json)
@@ -279,6 +279,25 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
     for keyword, entries in selected_items.items():
         terms = [f"{entry['word']} ({entry['explanation']})" for entry in entries]
         context_parts.append(f"{keyword}: " + ", ".join(terms))
+
+    context = "以下是与翻译相关的新西兰文化关键词及释义：\n" + "\n".join(context_parts)
+    return prompt.strip() + "\n\n" + context
+'''
+def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
+    try:
+        selected_items = json.loads(selected_json)
+    except Exception as e:
+        return prompt + "\n\n⚠️ [关键词注入失败] JSON 解析错误"
+
+    context_parts = []
+    for keyword, entries in selected_items.items():
+        if not entries:
+            continue  # ✅ 跳过没有选中任何相关词的关键词
+        terms = [f"{entry['word']} ({entry['explanation']})" for entry in entries]
+        context_parts.append(f"{keyword}: " + ", ".join(terms))
+
+    if not context_parts:
+        return prompt + "\n\n⚠️ [提示] 当前未选择任何关键词释义，未进行注入"
 
     context = "以下是与翻译相关的新西兰文化关键词及释义：\n" + "\n".join(context_parts)
     return prompt.strip() + "\n\n" + context
