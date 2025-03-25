@@ -196,7 +196,7 @@ def render_checkbox_groups_by_keyword(all_data: list):
             choices.append({
                 "id": f"{i}_{j}",
                 "title": entry["explanation"],
-                "content": f"### {entry['word']}\n" + "\n".join(entry["examples"]),
+                "content": f"### {entry['word']}\n" + "\n".join(f"- {ex}" for ex in entry["examples"]),  # "\n".join(entry["examples"]),
                 "selected": False
             })
 
@@ -206,8 +206,8 @@ def render_checkbox_groups_by_keyword(all_data: list):
         right_choices = choices[half:]
 
         updates.append([
-            gr.update(choices=left_choices, visible=True, label=f"{keyword}（左列）"),
-            gr.update(choices=right_choices, visible=True, label=f"{keyword}（右列）")
+            gr.update(choices=left_choices, visible=True, label=f"{keyword}"),  # （左列）"),
+            gr.update(choices=right_choices, visible=True, label=f"{keyword}"),  # （右列）")
         ])
 
     # 如果不足50组，补空
@@ -222,25 +222,28 @@ def render_checkbox_groups_by_keyword(all_data: list):
     return flat_updates
 
 
-
-
 def collect_grouped_markdown_selection(*args) -> str:
     """
-    接收 N 个 Markdown checkbox 的 .value（List[str]），以及 all_data（List[Dict]）
-
-    args = [cb1_value, cb2_value, ..., all_data]
+    参数结构：
+    - 前 2*N 个是 CheckboxGroupMarkdown 的 .value
+    - 最后一个是 all_data（包含所有关键词组及其 TopK 释义信息）
     """
     *group_values, all_data = args
     result = {}
 
-    for i, selected_ids in enumerate(group_values):
-        if i >= len(all_data):
+    for group_index in range(len(group_values) // 2):
+        selected_left = group_values[group_index * 2] or []
+        selected_right = group_values[group_index * 2 + 1] or []
+        selected_ids = selected_left + selected_right
+
+        if group_index >= len(all_data):
             continue
-        keyword = all_data[i].get("keyword", f"关键词{i+1}")
-        topk_items = all_data[i].get("topk", [])
+
+        keyword = all_data[group_index].get("keyword", f"关键词{group_index+1}")
+        topk_items = all_data[group_index].get("topk", [])
 
         id_to_entry = {
-            f"{i}_{j}": entry for j, entry in enumerate(topk_items)
+            f"{group_index}_{j}": entry for j, entry in enumerate(topk_items)
         }
 
         result[keyword] = []
@@ -254,6 +257,7 @@ def collect_grouped_markdown_selection(*args) -> str:
                 })
 
     return json.dumps(result, ensure_ascii=False, indent=2)
+
 
 
 def update_accordion_labels(all_related_data):
