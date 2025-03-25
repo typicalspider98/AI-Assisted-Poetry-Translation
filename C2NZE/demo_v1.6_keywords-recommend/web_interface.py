@@ -55,7 +55,11 @@ with gr.Blocks() as demo:
         textbox_keywords_json = gr.Textbox(label="关键词 JSON", lines=4)
 
     # ==== 查询 & 分组展示区 ====
-    btn_query_redis = gr.Button("查询向量数据库（TopK）")
+    with gr.Row():
+        btn_query_redis = gr.Button("查询向量数据库（TopK）", scale=4)
+        query_status = gr.Textbox(label="状态提示", interactive=False, scale=1)
+    # btn_query_redis = gr.Button("查询向量数据库（TopK）")
+    # query_status = gr.Textbox(label="状态提示", interactive=False)
     all_related_data = gr.State([])
 
     # 最多展示 50 个关键词的相关词推荐（逐个定义并注册组件）
@@ -94,11 +98,11 @@ with gr.Blocks() as demo:
     textbox_selected_summary = gr.Textbox(label="最终选择结果（含说明和例句）", lines=12)
 
     btn_inject_keywords = gr.Button("注入关键词")
-    textbox_final_prompt = gr.Textbox(label="注入后的提示词", lines=8)
+    textbox_final_prompt = gr.Textbox(label="注入后的提示词", lines=8, interactive=True)
 
     # ==== 翻译 + 审查 ====
-    textbox_translation1 = gr.Textbox(label="DeepSeek返回的Translation1", lines=8)
     btn_submit_prompt = gr.Button("提交 Prompt0 给 DeepSeek")
+    textbox_translation1 = gr.Textbox(label="DeepSeek返回的Translation1", lines=8, interactive=True)
 
     textbox_review = gr.Textbox(label="Qwen审查意见（可编辑）", lines=8)
     btn_call_ds_review = gr.Button("提交翻译审查")
@@ -132,19 +136,27 @@ with gr.Blocks() as demo:
     )
 
     btn_query_redis.click(
+        fn=lambda: "正在查询向量数据库中，请稍候...",
+        inputs=[],
+        outputs=query_status
+    ).then(
         fn=semantic_helper.query_related_terms_from_redis,
         inputs=textbox_keywords_json,
         outputs=all_related_data
     ).then(
         fn=semantic_helper.render_checkbox_groups_by_keyword,
         inputs=all_related_data,
-        # outputs=checkbox_groups
         outputs=[cb for pair in checkbox_groups for cb in pair]
     ).then(
         fn=lambda data: [gr.update(visible=i < len(data)) for i in range(50)],
         inputs=all_related_data,
         outputs=accordion_blocks
+    ).then(
+        fn=lambda: "✅ 查询完成！",
+        inputs=[],
+        outputs=query_status
     )
+
 
     btn_confirm_selection.click(
         fn=semantic_helper.collect_grouped_markdown_selection,
