@@ -10,6 +10,21 @@ from transformers import BitsAndBytesConfig
 # 限制 PyTorch 的分配策略，以减少显存碎片化
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:64"
 
+# translation_logic.py 顶部加入（或放入专用模块也行）
+import redis
+import sys
+
+def check_redis_connection_or_exit(host="localhost", port=6379, db=0):
+    try:
+        r = redis.Redis(host=host, port=port, db=db)
+        r.ping()
+        print(f"✅ Redis 数据库 {db} 已连接")
+    except redis.ConnectionError:
+        print("❌ Redis 数据库连接失败，请检查 Redis 服务是否已启动。\n Quick launch:\nnohup dockerd > dockerd.log 2>&1 &")
+        sys.exit("❌ 项目启动终止：Redis 数据库不可用。")
+
+check_redis_connection_or_exit(db=0)
+check_redis_connection_or_exit(db=2)
 
 global custom_model_path, tokenizer, model
 #####################################
