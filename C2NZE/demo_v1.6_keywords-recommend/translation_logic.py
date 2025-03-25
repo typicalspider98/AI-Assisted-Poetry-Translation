@@ -20,7 +20,9 @@ def check_redis_connection_or_exit(host="localhost", port=6379, db=0):
         r.ping()
         print(f"✅ Redis 数据库 {db} 已连接")
     except redis.ConnectionError:
-        print("❌ Redis 数据库连接失败，请检查 Redis 服务是否已启动。\n Quick launch:\nnohup dockerd > dockerd.log 2>&1 &")
+        print("❌ Redis 数据库连接失败，请检查 Redis 服务是否已启动。"
+        "\n Quick launch:\nnohup dockerd > dockerd.log 2>&1 &\n"
+        "docker start redis-server_NZDdictionary")
         sys.exit("❌ 项目启动终止：Redis 数据库不可用。")
 
 check_redis_connection_or_exit(db=0)
