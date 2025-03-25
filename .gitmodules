@@ -1,0 +1,19 @@
+[submodule "DeepSeek-R1-Distill-Qwen-1.5B"]
+    path = C2NZE/models/DeepSeek-R1-Distill-Qwen-1.5B
+    url = https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+
+[submodule "DeepSeek-R1-Distill-Llama-8B"]
+    path = C2NZE/models/DeepSeek-R1-Distill-Llama-8B
+    url = https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+
+[submodule "DeepSeek-R1-Distill-Qwen-14B"]
+    path = C2NZE/models/DeepSeek-R1-Distill-Qwen-14B
+    url = https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+
+[submodule "Qwen2.5-1.5B-Instruct"]
+    path = C2NZE/models/Qwen2.5-1.5B-Instruct
+    url = https://huggingface.co/deepseek-ai/Qwen2.5-1.5B-Instruct
+
+[submodule "Qwen2.5-7B-Instruct"]
+    path = C2NZE/models/Qwen2.5-7B-Instruct
+    url = https://huggingface.co/deepseek-ai/Qwen2.5-7B-Instruct
