@@ -118,10 +118,12 @@ with gr.Blocks() as demo:
     btn_set_model_token.click(fn=translation_logic.set_local_model_token, inputs=model_token_input, outputs=model_token_status)
     btn_get_instruction.click(fn=translation_logic.generate_instruction_text, inputs=input_poetry, outputs=textbox_instruction)
     btn_submit_boss_model.click(fn=translation_logic.call_local_qwen_with_instruction, inputs=[textbox_instruction, model_token_input], outputs=textbox_prompt0)
-    btn_submit_prompt.click(fn=translation_logic.call_deepseek_api, inputs=textbox_prompt0, outputs=textbox_translation1)
-    btn_call_ds_review.click(fn=translation_logic.review_translation_with_boss, inputs=[textbox_prompt0, textbox_translation1], outputs=textbox_review)
-    btn_submit_revision.click(fn=translation_logic.call_deepseek_api, inputs=textbox_prompt0, outputs=textbox_translation2)
-    btn_loop_review.click(fn=translation_logic.review_translation_with_boss, inputs=[textbox_prompt0, textbox_translation2], outputs=textbox_review)
+
+    btn_submit_prompt.click(fn=translation_logic.call_deepseek_api, inputs=textbox_final_prompt, outputs=textbox_translation1)
+
+    btn_call_ds_review.click(fn=translation_logic.review_translation_with_boss, inputs=[textbox_final_prompt, textbox_translation1], outputs=textbox_review)
+    btn_submit_revision.click(fn=translation_logic.call_deepseek_api, inputs=textbox_final_prompt, outputs=textbox_translation2)
+    btn_loop_review.click(fn=translation_logic.review_translation_with_boss, inputs=[textbox_final_prompt, textbox_translation2], outputs=textbox_review)
 
     btn_gen_prompt_keywords.click(
         fn=lambda poem, limit: semantic_helper.build_keyword_prompt(poem, int(limit)),
@@ -156,7 +158,6 @@ with gr.Blocks() as demo:
         inputs=[],
         outputs=query_status
     )
-
 
     btn_confirm_selection.click(
         fn=semantic_helper.collect_grouped_markdown_selection,
