@@ -163,7 +163,7 @@ def local_generate(prompt_text: str, max_new_tokens=128, min_length=50):
     generated_tokens = outputs[0][input_length:]
     result = tokenizer.decode(generated_tokens, skip_special_tokens=True)
 
-    # ✅ 删除 </think> 及其前面的内容（如果存在）
+    # 删除</think> 及其前面的内容（如果存在）
     if "</think>" in result:
         result = result.split("</think>")[-1].strip()
     # result = tokenizer.decode(outputs[0], skip_special_tokens=True)
