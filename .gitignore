@@ -54,3 +54,5 @@ C2NZE/demo_v1.5/models/*
 !models/.gitkeep
 !model/.gitkeep
 
+C2NZE/demo_v1.6_keywords-recommend/logs/*
+.gitignore
