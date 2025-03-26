@@ -6,3 +6,7 @@ echo "🚀 启动容器并挂载 GPU，设置容器名为 redis-server_NZDdictio
 docker run -it --rm --gpus all -p 6379:6379 --name redis-server_NZDdictionary poetry-translator-gpu
 
 docker exec -it poetry-translator-gpu bash
+
+# Step:
+# chmod +x start.sh
+# ./start.sh
