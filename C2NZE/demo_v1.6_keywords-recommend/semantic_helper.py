@@ -299,7 +299,7 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
     if not context_parts:
         return prompt + "\n\n⚠️ [提示] 当前未选择任何关键词释义，未进行注入"
 
-    context = "以下是与翻译相关的新西兰文化关键词及释义：\n" + "\n".join(context_parts)
+    context = "以下是与本首诗歌翻译相关的新西兰英语关键词及释义，可供参考：\n" + "\n".join(context_parts)
     return prompt.strip() + "\n\n" + context
 
 
