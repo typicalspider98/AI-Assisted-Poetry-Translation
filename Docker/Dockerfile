@@ -25,4 +25,5 @@ SHELL ["conda", "run", "-n", "deepseek-r1", "/bin/bash", "-c"]
 # 添加 Redis 测试脚本
 RUN echo -e '#!/bin/bash\nredis-cli ping' > /check_redis.sh && chmod +x /check_redis.sh
 
-CMD service redis-server start && bash
+#CMD service redis-server start && bash
+CMD service redis-server start && tail -f /dev/null

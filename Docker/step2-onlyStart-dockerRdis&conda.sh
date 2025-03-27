@@ -48,6 +48,6 @@ echo "请运行以下命令开始工作："
 echo "  conda activate $ENV_NAME"
 echo "  python your_script.py  # 或进入项目目录继续开发"
 
-# chmod +x run_redis_and_conda.sh
-# ./run_redis_and_conda.sh
+# chmod +x step2-onlyStart-dockerRdis-conda.sh
+# ./step2-onlyStart-dockerRdis-conda.sh
 
