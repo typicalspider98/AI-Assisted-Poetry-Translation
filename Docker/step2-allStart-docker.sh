@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 检查是否已安装 docker
+# ===== 1. 检查是否已安装 docker =====
 if ! command -v docker &> /dev/null
 then
     echo "🔧 Docker 未安装，正在安装..."
@@ -12,10 +12,8 @@ then
       sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
     echo \
-      "deb [arch=$(dpkg --print-architecture) \
-      signed-by=/etc/apt/keyrings/docker.gpg] \
-      https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     sudo apt update
@@ -26,7 +24,7 @@ else
     echo "✅ Docker 已安装，跳过安装步骤"
 fi
 
-# 检查并启动 Docker 服务
+# ===== 2. 启动 Docker 服务（根据系统类型）=====
 INIT_SYSTEM=$(ps -p 1 -o comm=)
 echo "🧪 当前 init system: $INIT_SYSTEM"
 
@@ -44,23 +42,32 @@ else
     fi
 fi
 
-# 构建镜像（自动使用缓存）
+# ===== 3. 构建镜像（自动使用缓存）=====
 echo "🔧 构建 Docker 镜像..."
 docker build -t poetry-translator-gpu .
 
-# 检查容器是否已存在，避免名称冲突
-if docker ps -a --format '{{.Names}}' | grep -q '^redis-server_NZDdictionary$'; then
-    echo "⚠️ 容器 redis-server_NZDdictionary 已存在，尝试启动它..."
-    docker start -ai redis-server_NZDdictionary
-else
-    echo "🚀 创建并启动新容器 redis-server_NZDdictionary..."
-    docker run -it --gpus all -p 6379:6379 --name redis-server_NZDdictionary poetry-translator-gpu
+# ===== 4. 检查 GPU runtime 支持 =====
+USE_GPU=false
+if docker info | grep -q 'Runtimes:.*nvidia'; then
+    USE_GPU=true
 fi
 
-# 提示用户如何再次进入容器
+# ===== 5. 检查容器是否存在 =====
+if docker ps -a --format '{{.Names}}' | grep -q '^redis-server_NZDdictionary$'; then
+    echo "⚠️ 容器 redis-server_NZDdictionary 已存在，尝试启动它..."
+    docker start redis-server_NZDdictionary
+    docker exec -it redis-server_NZDdictionary bash
+else
+    echo "🚀 创建并启动新容器 redis-server_NZDdictionary..."
+    if [ "$USE_GPU" = true ]; then
+        echo "✅ 检测到 GPU 支持，使用 --gpus all 启动"
+        docker run -it --gpus all -p 6379:6379 --name redis-server_NZDdictionary poetry-translator-gpu
+    else
+        echo "⚠️ 未检测到 GPU runtime，降级为 CPU 模式启动"
+        docker run -it -p 6379:6379 --name redis-server_NZDdictionary poetry-translator-gpu
+    fi
+fi
+
+# ===== 6. 结束提示 =====
 echo "✅ 安装完成！如需再次进入容器，请运行："
 echo "docker exec -it redis-server_NZDdictionary bash"
-
-# Step:
-# chmod +x step2-start.sh
-# ./step2-start.sh
