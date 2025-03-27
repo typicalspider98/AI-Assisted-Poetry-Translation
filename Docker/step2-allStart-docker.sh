@@ -1,5 +1,8 @@
 #!/bin/bash
-
+# this opperation will need at least 200G disk space
+# this script is for the first time to start the docker container
+# it will build the image and start the container
+# if you just want redis-server, you can use step2-onlyStart-dockerRdis-conda.sh
 # ===== 1. 检查是否已安装 docker =====
 if ! command -v docker &> /dev/null
 then
@@ -71,3 +74,6 @@ fi
 # ===== 6. 结束提示 =====
 echo "✅ 安装完成！如需再次进入容器，请运行："
 echo "docker exec -it redis-server_NZDdictionary bash"
+
+# chmod +x step2-allStart-docker.sh
+# ./step2-allStart-docker.sh
