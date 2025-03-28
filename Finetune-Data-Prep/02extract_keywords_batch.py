@@ -62,18 +62,11 @@ def call_model(prompt: str, max_new_tokens: int = 128) -> str:
 
 def extract_json_keywords(model_output: str) -> List[str]:
     try:
-        match = re.search(r"```json\\s*({[\\s\\S]*?})\\s*", model_output)
+        match = re.search(r"```json\s*({[\s\S]*?})\s*", model_output)
         if match:
-            json_block = match.group(1)
+            return json.loads(match.group(1)).get("keywords", [])
         else:
-            # fallback to raw json without markdown
-            json_match = re.search(r"\{[\s\S]*?\}", model_output)
-            if not json_match:
-                return []
-            json_block = json_match.group(0)
-
-        data = json.loads(json_block)
-        return data.get("keywords", [])
+            return []  # fallback: 不再额外处理原始输出，保持简洁清晰
     except Exception as e:
         log(f"❌ JSON 解析失败: {e}")
         return []
@@ -95,7 +88,7 @@ def extract_keywords_batch(poem_json_path: str, output_path: str):
         log(f"\n📜 处理第{i+1}首：《{poem.get('title', '')}》")
         prompt = build_keyword_prompt(content)
         model_output = call_model(prompt)
-        log(f"🔍 模型原始输出：\n{model_output}")
+        log(f"🔍 模型输出：\n{model_output}")  # 用于调试
         keywords = extract_json_keywords(model_output)
 
         if keywords:
