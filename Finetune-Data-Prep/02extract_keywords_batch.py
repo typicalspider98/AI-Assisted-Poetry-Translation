@@ -7,6 +7,7 @@ from typing import List, Dict
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 from datetime import datetime
+from transformers import BitsAndBytesConfig
 
 # ========= 本地模型路径 =========
 MODEL_PATH = "../C2NZE/models/DeepSeek-R1-Distill-Qwen-14B"
@@ -23,12 +24,32 @@ def log(message: str):
 
 # ========= 加载模型 =========
 log(f"🚀 加载模型：{MODEL_PATH}")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+# tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True,
+    local_files_only=True
+    )
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True,
+    local_files_only=True,  # load_in_8bit=True,  # 启用 8-bit 量化
+    device_map="auto",  # device_map="auto",
+    torch_dtype=torch.float16,
+    quantization_config=BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_quant_type="nf4",
+        )
+    )
+'''
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH, trust_remote_code=True,
     torch_dtype=torch.float16,
     device_map="auto"
 )
+'''
 log("✅ 模型加载完成")
 
 # ========= 核心函数 =========
@@ -46,7 +67,7 @@ def build_keyword_prompt(poem_text: str) -> str:
         f"诗歌原文：{poem_text}"
     )
 
-def call_model(prompt: str, max_new_tokens: int = 128) -> str:
+def call_model(prompt: str, max_new_tokens: int = 2048) -> str:
     inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
     outputs = model.generate(
         **inputs,
