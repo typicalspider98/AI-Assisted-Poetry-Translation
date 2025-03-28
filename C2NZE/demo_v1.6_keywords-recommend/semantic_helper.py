@@ -47,6 +47,7 @@ def get_embedding(text: str, model_id: int = 1):
     return embedding
 
 
+'''
 def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 1):
     merged_query = ", ".join(queries)
     query_vector = get_embedding(merged_query, model_id)
@@ -56,6 +57,25 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int 
         stored_vector = np.frombuffer(redis_vec.get(word), dtype=np.float32)
         similarity = np.dot(query_vector, stored_vector)
         similarities.append((word.decode("utf-8"), similarity))
+    similarities.sort(key=lambda x: x[1], reverse=True)
+    return similarities[:top_k]
+'''
+def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 1):
+    merged_query = ", ".join(queries)
+    query_vector = get_embedding(merged_query, model_id)
+    query_norm = np.linalg.norm(query_vector)
+    
+    words = redis_vec.keys("*")
+    similarities = []
+    for word in words:
+        stored_vector = np.frombuffer(redis_vec.get(word), dtype=np.float32)
+        stored_norm = np.linalg.norm(stored_vector)
+        if stored_norm == 0 or query_norm == 0:
+            similarity = 0.0
+        else:
+            similarity = np.dot(query_vector, stored_vector) / (query_norm * stored_norm)
+        similarities.append((word.decode("utf-8"), similarity))
+    
     similarities.sort(key=lambda x: x[1], reverse=True)
     return similarities[:top_k]
 
