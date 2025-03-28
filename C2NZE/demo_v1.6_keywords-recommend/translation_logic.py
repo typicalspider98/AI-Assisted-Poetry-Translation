@@ -248,7 +248,8 @@ def review_translation_with_boss(prompt_context: str, candidate_translation: str
     instruction = (
         f"你是专业的翻译监管系统，下面是用户需求提示：\n{prompt_context}\n"
         f"大模型翻译结果如下：\n{candidate_translation}\n"
-        f"请指出译文中存在的问题，并如有需要给出改写后的版本，要求译文既保留原诗意境，又符合新西兰英语习惯。"
+        f"请指出译文中存在的问题，并如有需要给出改写后的版本，要求译文既保留原诗意境，又符合新西兰英语习惯。\n"
+        "只需给出翻译问题分析与改进建议，无需给出改后译文和修改说明"
     )
     review_feedback = local_generate(instruction, max_new_tokens=4000, min_length=100)
     write_log(

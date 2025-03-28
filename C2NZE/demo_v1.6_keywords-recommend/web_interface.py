@@ -104,8 +104,8 @@ with gr.Blocks() as demo:
     btn_submit_prompt = gr.Button("提交 Prompt0 给 DeepSeek")
     textbox_translation1 = gr.Textbox(label="DeepSeek返回的Translation1", lines=8, interactive=True)
 
-    textbox_review = gr.Textbox(label="Qwen审查意见（可编辑）", lines=8)
     btn_call_ds_review = gr.Button("提交翻译审查")
+    textbox_review = gr.Textbox(label="Qwen审查意见（可编辑）", lines=8, interactive=True)
 
     textbox_translation2 = gr.Textbox(label="DeepSeek返回的Translation2", lines=8)
     btn_submit_revision = gr.Button("修订后提交给 DS")
