@@ -95,6 +95,7 @@ def extract_keywords_batch(poem_json_path: str, output_path: str):
         log(f"\n📜 处理第{i+1}首：《{poem.get('title', '')}》")
         prompt = build_keyword_prompt(content)
         model_output = call_model(prompt)
+        log(f"🔍 模型原始输出：\n{model_output}")
         keywords = extract_json_keywords(model_output)
 
         if keywords:
