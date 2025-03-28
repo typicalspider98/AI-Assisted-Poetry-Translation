@@ -103,7 +103,7 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
         "3.主题词包括所有意象，并最终以准确简明的英文单词展示。\n"
         "4.并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
         "JSON 示例格式如下：\n"
-        "{\n  \"keywords\": [\n    \"word1\",\n    \"word2\",\n    \"word3\"\n  ]\n}\n\n"
+        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\"\n  ]\n}\n\n"
         f"诗歌原文：{poem_text}"
     ).strip()
     return prompt
