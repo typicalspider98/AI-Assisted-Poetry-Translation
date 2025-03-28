@@ -193,10 +193,25 @@ def render_checkbox_groups_by_keyword(all_data: list):
         # print(f"[关键词 {i+1}] {keyword} 的相关词有：", [entry["word"] for entry in topk])
         choices = []
         for j, entry in enumerate(topk):
+            word = entry["word"]
+            score = entry.get("score", 0.0)
+            explanation = entry["explanation"]
+            examples = entry["examples"]
+            # score_display = f"（相似度：{score:.3f}）"
+            score_display = f"⭐️ 相似度：{score:.3f}" if score > 0.90 else f"相似度：{score:.3f}"
+
+            '''
             choices.append({
                 "id": f"{i}_{j}",
                 "title": entry["explanation"],
                 "content": f"### {entry['word']}\n" + "\n".join(f"- {ex}" for ex in entry["examples"]),  # "\n".join(entry["examples"]),
+                "selected": False
+            })
+            '''
+            choices.append({
+                "id": f"{i}_{j}",
+                "title": explanation,
+                "content": f"### {word} {score_display}\n" + "\n".join(f"- {ex}" for ex in examples),
                 "selected": False
             })
 
