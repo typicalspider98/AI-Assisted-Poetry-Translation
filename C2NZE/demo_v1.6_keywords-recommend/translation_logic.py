@@ -250,7 +250,7 @@ def review_translation_with_boss(prompt_context: str, candidate_translation: str
         f"大模型翻译结果如下：\n{candidate_translation}\n"
         f"请指出译文中存在的问题，并如有需要给出改写后的版本，要求译文既保留原诗意境，又符合新西兰英语习惯。"
     )
-    review_feedback = local_generate(instruction, max_new_tokens=200, min_length=100)
+    review_feedback = local_generate(instruction, max_new_tokens=4000, min_length=100)
     write_log(
         f"审核翻译调用：\n使用 prompt:\n{prompt_context}\n候选翻译:\n{candidate_translation}\n审核反馈:\n{review_feedback}")
     return review_feedback
