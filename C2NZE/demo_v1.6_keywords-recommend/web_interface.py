@@ -30,7 +30,7 @@ with gr.Blocks() as demo:
         textbox_instruction = gr.Textbox(label="翻译提示文本（可编辑）", lines=8)
 
     with gr.Row():
-        model_path_display = gr.Textbox(label="当前模型路径", interactive=True, value="/workspace/Project-Code/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-1.5B")
+        model_path_display = gr.Textbox(label="当前模型路径", interactive=True, value="/workspace/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
         btn_select_model = gr.Button("选择模型文件夹")
         btn_set_model_path = gr.Button("确认模型路径")
         model_path_status = gr.Textbox(label="模型路径状态", interactive=False)
