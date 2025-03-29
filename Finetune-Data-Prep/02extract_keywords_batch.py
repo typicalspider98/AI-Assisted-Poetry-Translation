@@ -1,5 +1,5 @@
 # extract_keywords_batch.py
-
+# 测试本地模型从json诗歌文本提取诗歌关键词并保存
 import os
 import json
 import re
