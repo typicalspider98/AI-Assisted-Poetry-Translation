@@ -109,4 +109,4 @@ def process_poem_folder(input_folder: str, output_folder: str):
 
 # ========= 入口 =========
 if __name__ == "__main__":
-    process_poem_folder("jsons_extracting", "keywords_jsons_DeepSeek")
+    process_poem_folder("jsons_extracting", "keywords_jsons_DeepSeek_output")
