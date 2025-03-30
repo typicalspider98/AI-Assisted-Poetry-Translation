@@ -21,14 +21,14 @@ redis_dict = redis.Redis(host="localhost", port=6379, db=0)  # 词典释义数�
 
 # 支持多个嵌入模型路径
 EMBEDDING_MODELS = {
-    1: "/workspace/Project-Code/AI-Assisted-Poetry-Translation/VectorDatabase/models/bge-base-en-v1.5",
-    2: "/workspace/Project-Code/AI-Assisted-Poetry-Translation/VectorDatabase/models/bge-m3",
+    # 1: "/workspace/Project-Code/AI-Assisted-Poetry-Translation/VectorDatabase/models/bge-base-en-v1.5",
+    2: "/workspace/AI-Assisted-Poetry-Translation/VectorDatabase/models/bge-m3",
 }
 
 # 根据 model_id 加载对应 embedding 模型（缓存）
 _loaded_models = {}
 
-def get_embedding(text: str, model_id: int = 1):
+def get_embedding(text: str, model_id: int = 2):
     if model_id not in _loaded_models:
         path = EMBEDDING_MODELS.get(model_id)
         if not path:
@@ -60,7 +60,7 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int 
     similarities.sort(key=lambda x: x[1], reverse=True)
     return similarities[:top_k]
 '''
-def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 1):
+def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 2):
     merged_query = ", ".join(queries)
     query_vector = get_embedding(merged_query, model_id)
     query_norm = np.linalg.norm(query_vector)
@@ -158,7 +158,7 @@ def extract_base_word(redis_key: str) -> str:
     return redis_key  # fallback: key 不符合结构，直接返回原始 key
 
 
-def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int = 1) -> List[Dict]:
+def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int = 2) -> List[Dict]:
     keywords = display_keyword_options(json_text)  # 从 JSON 提取关键词
     all_data = []
 
