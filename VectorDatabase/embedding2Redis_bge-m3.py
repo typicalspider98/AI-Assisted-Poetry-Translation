@@ -6,7 +6,7 @@ import numpy as np
 from transformers import AutoTokenizer, AutoModel
 
 # 连接 Redis
-r = redis.Redis(host="localhost", port=6379, db=0)
+r = redis.Redis(host="localhost", port=6379, db=2)  # 建议确认使用 db=2 一致性
 
 # 加载 BGE 模型
 MODEL_PATH = "./models/bge-m3"
@@ -16,12 +16,12 @@ model = AutoModel.from_pretrained(MODEL_PATH)
 
 def get_embedding(text):
     """
-    计算文本的向量表示（均值池化）
+    计算文本的向量表示（均值池化）并转换为 float32 格式
     """
     tokens = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
     with torch.no_grad():
         output = model(**tokens)
-    embedding = output.last_hidden_state.mean(dim=1).squeeze().numpy()
+    embedding = output.last_hidden_state.mean(dim=1).squeeze().cpu().numpy().astype(np.float32)
     return embedding
 
 
