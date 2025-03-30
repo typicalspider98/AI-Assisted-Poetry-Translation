@@ -93,6 +93,6 @@ def process_enriched_poem_file(input_path: str, output_path: str):
 # ========= 示例调用 =========
 if __name__ == "__main__":
     process_enriched_poem_file(
-        "keywords_enriched_jsons_DeepSeek_output/唐_part1_demo_enriched.json",
-        "final_selected_terms_output/唐_part1_demo_selected.json"
+        "keywords_enriched_jsons_DeepSeek_output/唐_part1_enriched.json",
+        "final_selected_terms_output/唐_part1_selected.json"
     )
