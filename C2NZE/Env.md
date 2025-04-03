@@ -20,6 +20,8 @@ pip install gradio
 pip install bitsandbytes
 
 pip install gradio_checkboxgroupmarkdown
+pip install -U FlagEmbedding
+
 
 ```
 
