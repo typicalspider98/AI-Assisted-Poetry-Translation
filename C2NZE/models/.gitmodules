@@ -17,3 +17,7 @@
 [submodule "Qwen2.5-7B-Instruct"]
     path = C2NZE/models/Qwen2.5-7B-Instruct
     url = https://huggingface.co/deepseek-ai/Qwen2.5-7B-Instruct
+
+[submodule "bge-reranker-v2-m3"]
+    path = C2NZE/models/bge-reranker-v2-m3
+    url = https://huggingface.co/BAAI/bge-reranker-v2-m3
