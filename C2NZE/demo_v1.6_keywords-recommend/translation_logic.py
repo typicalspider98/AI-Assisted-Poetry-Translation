@@ -86,8 +86,6 @@ def set_model_path(new_path: str):
                                                     )
                                                     # torch_dtype="auto")  # 半精度计算），节省显存
         # model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True, device_map="cpu")
-
-
         print("Local Boss model loaded.")
         write_log("本地 Boss 模型加载完成。")
         return f"✅ 模型加载成功: {new_path}"  # 返回成功信息
@@ -204,7 +202,44 @@ def generate_instruction_text(user_query: str) -> str:
     )
     write_log(f"生成初始提示文本:\n{instruction}")
     return instruction
-
+def generate_instruction_text_EN(user_query: str) -> str:
+    """
+    根据用户输入诗句生成初始提示文本，供用户查看和编辑。
+    instruction = (
+        f"你是一个专业的翻译辅助系统，专门负责指导大模型生成符合新西兰英语习惯的翻译。"
+        f"用户需求如下：{user_query}\n"
+        f"请生成一个详细的翻译提示，要求：\n"
+        f"1. 保留中文古诗的意境与韵律；\n"
+        f"2. 翻译应体现新西兰英语的语言风格和文化特点；\n"
+        f"请直接给出prompt用于指导大模型进行上面诗歌的翻译工作（包括诗歌内容、如何翻译和注意事项）。"
+    )
+    """
+    instruction = (
+        f"You are a professional translation support system, specifically designed to generate prompts "
+        f"that guide large language models in producing translations that align with the usage and stylistic features of New Zealand English."
+        f"The user needs to translate the following text:\n{user_query}\n"
+        f"Please directly generate a prompt that instructs the model to translate the above Chinese poem into English poetry."
+        f"The requirements for the generated prompt are as follows (do not include the word **Prompt:**   in the output):\n"
+        f"1. The prompt must be written in English.\n"
+        f"2. The first sentence should clearly instruct the model to translate the provided Chinese poem into an English poem, "
+        f"and it must include the original Chinese text.\n"
+        f"3. The prompt should take into account the specific content of the poem and describe appropriate considerations for the translation process. "
+        f"For example:\n"
+        f"Strive to convey the core ideas, emotions, and main message of the original poem, avoiding distortion or excessive elaboration."
+        f"Preserve the cultural imagery within the poem and choose suitable English expressions."
+        "Maintain poetic qualities such as rhythm, rhyme (if feasible), conciseness, and literary devices."
+        "When dealing with specific cultural references, historical figures, or customs, include annotation, "
+        "cultural adaptation, or interpretive translation to prevent misunderstanding.\n"
+        "Adapt the translation approach flexibly according to each line—favoring interpretive translation for imagery-rich lines, "
+        "and more direct translation for structurally or rhetorically important lines.\n"
+        "The prompt should also emphasize the need to reflect the linguistic style and cultural characteristics of New Zealand English in the translation.\n"
+        "(Regarding what New Zealand English entails, the user may provide a list of keywords derived from a vector database "
+        "built from a New Zealand English dictionary. In some cases, certain English words may have unique usages in New Zealand English. "
+        "We extract these usage cases from the database and present them as keywords with sample sentences. "
+        "When generating the prompt, you may refer to these usage contexts to see whether they can be incorporated into the poem's translation. The goal is to retain the original poem's meaning and imagery as much as possible, while also capturing the distinctive qualities of New Zealand English.)"
+    )
+    write_log(f"生成初始EN提示文本:\n{instruction}")
+    return instruction
 
 # 把不需要的 chain-of-thought 标记过滤掉
 def clean_prompt(prompt: str) -> str:

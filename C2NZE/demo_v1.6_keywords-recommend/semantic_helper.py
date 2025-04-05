@@ -130,6 +130,34 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
         f"诗歌原文：{poem_text}"
     ).strip()
     return prompt
+def build_keyword_prompt_EN(poem_text: str, max_new_tokens: int = 128) -> str:
+    '''
+    prompt = (
+        "你是一位精通中文古典诗歌与英语文化的翻译顾问。\n"
+        "请根据下列诗歌内容提取5~8个用于指导英文翻译的关键词或意象短语，\n"
+        "请不要逐句照搬原诗句，而是提取其中可用于翻译时的意象、文化概念或核心主题词。\n"
+        "并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
+        "JSON 示例格式如下：\n"
+        "{\n  \"keywords\": [\n    \"moonlight\",\n    \"bed\",\n    \"homesickness\"\n  ]\n}\n\n"
+        f"诗歌原文：{poem_text}"
+    ).strip()
+    '''
+    prompt = (
+        f"You are a translation advisor well-versed in classical Chinese poetry and English cultural expression.\n"
+        f"Based on the following poem and its length, extract a suitable set of thematic keywords to guide the English translation process.\n"
+        f"Requirements:\n"
+        f"1. Do not simply extract phrases directly from each line of the original poem.\n"
+        f"2. Instead, analyze the overall meaning and imagery to identify core thematic words that can assist in capturing the essence of the poem in translation. "
+        f"These may include verbs, nouns, adjectives, adverbs, as well as symbolic imagery and culturally relevant concepts.\n"
+        f"3. Extract keywords according to natural pauses and semantic breaks in the poem's structure, following the rhythm and meaning of the original Chinese.\n"
+        f"4. In special cases, short Chinese phrases may be accepted as a single unit if breaking them apart would compromise the poem's overall meaning or imagery.\n"
+        f"5. Include all key symbols and imagery from the poem, and present the extracted thematic keywords as accurate, concise English words.\n"
+        f"6. Return the results in JSON format. The selected keywords should carry both translational value and cultural symbolism.\n"
+        f"Expected JSON format:\n"
+        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\"\n  ]\n}\n\n"
+        f"Original Poem:{poem_text}"
+    ).strip()
+    return prompt
 
 def extract_keywords_with_llm(prompt_text: str, max_new_tokens: int = 128) -> str:
     response = call_local_qwen_with_instruction(prompt_text, max_new_tokens=max_new_tokens)

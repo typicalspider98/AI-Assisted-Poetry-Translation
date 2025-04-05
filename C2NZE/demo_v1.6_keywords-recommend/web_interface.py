@@ -25,39 +25,53 @@ with gr.Blocks() as demo:
 
     # ==== 输入区域 ====
     with gr.Row():
-        input_poetry = gr.Textbox(label="诗歌输入 | Poetry Input", lines=6, value="《静夜思》\n床前明月光，疑是地上霜。举头望明月，低头思故乡。")
-        btn_get_instruction = gr.Button("生成初始提示文本 | Generate initial prompt text")
-        textbox_instruction = gr.Textbox(label="翻译提示文本（可编辑） | Translation hint text (editable)", lines=8)
+        with gr.Column(scale=2):
+            input_poetry = gr.Textbox(label="诗歌输入 | Poetry Input", lines=6, value="《静夜思》\n床前明月光，疑是地上霜。举头望明月，低头思故乡。")
+            btn_get_instruction = gr.Button("生成初始提示文本 | Generate initial prompt text")
+            btn_get_instruction_EN = gr.Button("生成EN初始提示文本 | Generate initial english prompt text")
+        with gr.Column(scale=6):
+            textbox_instruction = gr.Textbox(label="翻译提示文本（可编辑） | Translation hint text (editable)", lines=8)
 
     with gr.Row():
-        model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
-        btn_select_model = gr.Button("选择模型文件夹 | Select Model Folder")
-        btn_set_model_path = gr.Button("确认模型路径 | Confirm the model path")
-        model_path_status = gr.Textbox(label="模型路径状态 | Model Path Status", interactive=False)
+        with gr.Column(scale=4):
+            model_path_display = gr.Textbox(label="当前模型路径 | Current model path", interactive=True, value="/workspace/AI-Assisted-Poetry-Translation/C2NZE/models/DeepSeek-R1-Distill-Qwen-14B")
+        with gr.Column(scale=2):
+            btn_select_model = gr.Button("选择模型文件夹 | Select Model Folder")
+            btn_set_model_path = gr.Button("确认模型路径 | Confirm the model path")
+        with gr.Column(scale=4):
+            model_path_status = gr.Textbox(label="模型路径状态 | Model Path Status", interactive=False)
 
     with gr.Row():
-        model_token_input = gr.Textbox(label="模型Token上限 | The upper limit of the model token length")
-        btn_set_model_token = gr.Button("设置Token | Set Token")
-        model_token_status = gr.Textbox(label="Token设置结果 | Token setting results", interactive=False)
-
-    with gr.Row():
-        btn_submit_boss_model = gr.Button("提交到本地Boss模型 | Submit to local Boss model")
-        textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0 | Boss spawned Prompt0", lines=8)
+        with gr.Column(scale=1):
+            model_token_input = gr.Textbox(label="模型Token上限 | The upper limit of the model token length", value="2048")
+            btn_set_model_token = gr.Button("设置Token | Set Token")
+            model_token_status = gr.Textbox(label="Token设置结果 | Token setting results", interactive=False)
+            
+        with gr.Column(scale=8):
+            btn_submit_boss_model = gr.Button("提交到本地Boss模型 | Submit to local Boss model")
+            textbox_prompt0 = gr.Textbox(label="Boss生成的Prompt0 | Boss spawned Prompt0", lines=10)
 
     # ==== 关键词区域 ====
     with gr.Row():
-        keyword_token_limit = gr.Textbox(label="关键词提示 Token 上限 | The upper limit of the token length used for keyword generation", value="128")
-        btn_gen_prompt_keywords = gr.Button("生成关键词提取提示词 | Generate keyword extraction prompt words")
-        textbox_prompt_keywords = gr.Textbox(label="关键词提示词 | Keyword prompts", lines=6)
+        with gr.Column(scale=2):
+            btn_gen_prompt_keywords = gr.Button("生成关键词提取提示词 | Generate keyword extraction prompt words")
+            btn_gen_prompt_keywords_EN = gr.Button("生成EN关键词提取提示词 | Generate keyword extraction english prompt words")
+            keyword_token_limit = gr.Textbox(label="关键词提示 Token 上限 | The upper limit of the token length used for keyword generation", value="2048")
+            btn_get_keywords = gr.Button("提取关键词 | Extract keywords")
+        with gr.Column(scale=8):
+            textbox_prompt_keywords = gr.Textbox(label="关键词提示词 | Keyword prompts", lines=8)
 
     with gr.Row():
-        btn_get_keywords = gr.Button("提取关键词 | Extract keywords")
-        textbox_keywords_json = gr.Textbox(label="关键词 JSON | Keywords JSON", lines=4)
+        with gr.Column(scale=4):
+            textbox_keywords_json = gr.Textbox(label="关键词 JSON | Keywords JSON", lines=4)
+        with gr.Column(scale=2):
+            btn_query_redis = gr.Button("查询向量数据库（TopK） | Query vector database (TopK)", scale=4)
+            query_status = gr.Textbox(label="状态提示 | Status of the query", interactive=False, scale=1)
 
     # ==== 查询 & 分组展示区 ====
-    with gr.Row():
-        btn_query_redis = gr.Button("查询向量数据库（TopK） | Query vector database (TopK)", scale=4)
-        query_status = gr.Textbox(label="状态提示 | Status of the query", interactive=False, scale=1)
+    # with gr.Row():
+        # btn_query_redis = gr.Button("查询向量数据库（TopK） | Query vector database (TopK)", scale=4)
+        # query_status = gr.Textbox(label="状态提示 | Status of the query", interactive=False, scale=1)
     # btn_query_redis = gr.Button("查询向量数据库（TopK）")
     # query_status = gr.Textbox(label="状态提示", interactive=False)
     all_related_data = gr.State([])
@@ -117,6 +131,7 @@ with gr.Blocks() as demo:
     btn_set_model_path.click(fn=translation_logic.set_model_path, inputs=model_path_display, outputs=model_path_status)
     btn_set_model_token.click(fn=translation_logic.set_local_model_token, inputs=model_token_input, outputs=model_token_status)
     btn_get_instruction.click(fn=translation_logic.generate_instruction_text, inputs=input_poetry, outputs=textbox_instruction)
+    btn_get_instruction_EN.click(fn=translation_logic.generate_instruction_text_EN, inputs=input_poetry, outputs=textbox_instruction)
     btn_submit_boss_model.click(fn=translation_logic.call_local_qwen_with_instruction, inputs=[textbox_instruction, model_token_input], outputs=textbox_prompt0)
 
     btn_submit_prompt.click(fn=translation_logic.call_deepseek_api, inputs=textbox_final_prompt, outputs=textbox_translation1)
@@ -127,6 +142,11 @@ with gr.Blocks() as demo:
 
     btn_gen_prompt_keywords.click(
         fn=lambda poem, limit: semantic_helper.build_keyword_prompt(poem, int(limit)),
+        inputs=[input_poetry, keyword_token_limit],
+        outputs=textbox_prompt_keywords
+    )
+    btn_gen_prompt_keywords_EN.click(
+        fn=lambda poem, limit: semantic_helper.build_keyword_prompt_EN(poem, int(limit)),
         inputs=[input_poetry, keyword_token_limit],
         outputs=textbox_prompt_keywords
     )
@@ -171,4 +191,4 @@ with gr.Blocks() as demo:
         outputs=textbox_final_prompt
     )
 
-    demo.launch(share=True)
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
