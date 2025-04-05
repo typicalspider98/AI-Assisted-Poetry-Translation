@@ -120,7 +120,7 @@ write_log("DeepSeek API 配置完成。")
 #####################################
 # 3. 定义本地生成函数
 #####################################
-def local_generate(prompt_text: str, max_new_tokens=128, min_length=50):
+def local_generate(prompt_text: str, max_new_tokens=128, min_length=256):
     global custom_model_path, tokenizer, model
     """
     使用本地模型生成文本
@@ -248,7 +248,7 @@ def clean_prompt(prompt: str) -> str:
     return prompt.strip()
 
 
-def call_local_qwen_with_instruction(instruction: str, max_new_tokens=128, min_length=100) -> str:
+def call_local_qwen_with_instruction(instruction: str, max_new_tokens=1024, min_length=256) -> str:
     """
     使用本地 Qwen 模型生成最终的 prompt0，
     这里的输入为用户编辑后的提示文本（instruction）。
@@ -286,7 +286,7 @@ def review_translation_with_boss(prompt_context: str, candidate_translation: str
         f"请指出译文中存在的问题，并如有需要给出改写后的版本，要求译文既保留原诗意境，又符合新西兰英语习惯。\n"
         "只需给出翻译问题分析与改进建议，无需给出改后译文和修改说明"
     )
-    review_feedback = local_generate(instruction, max_new_tokens=4000, min_length=100)
+    review_feedback = local_generate(instruction, max_new_tokens=4000, min_length=256)
     write_log(
         f"审核翻译调用：\n使用 prompt:\n{prompt_context}\n候选翻译:\n{candidate_translation}\n审核反馈:\n{review_feedback}")
     return review_feedback
