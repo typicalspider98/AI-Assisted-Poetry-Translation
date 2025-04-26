@@ -47,6 +47,10 @@ def rerank_related_to_keywords(keywords, top_k=5, model_id=2):
             redis_keys.append(key)
             cos_sims.append(cos_sim)
 
+        print("\n--- 当前pairs内容 ---")
+        for p in pairs:
+            print(f"左边(query): {p[0]} || 右边(passage): {p[1]}")
+        print("--- 结束 ---\n")
         scores_flag = flag_reranker.compute_score(pairs, normalize=False)
         adjusted_flag = [custom_sigmoid(x, temperature=2.0) for x in scores_flag]
 

@@ -194,18 +194,19 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int 
 
 def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int = 2) -> List[Dict]:
     """
-    改进版：
-    - 每个关键词独立处理
-    - pair是 (keyword, meaning) （只用释义，不拼word）
-    - reranker分别打分（Flag + GTE）
-    - 取两者最大值作为final_score
-    - 按final_score排序，返回TopK
+    左右位置颠倒版：左边是kw（关键词），右边是Redis查到的词条+释义
     """
 
     results = []
 
-    for kw in queries:
-        # [1] 对每个关键词，Redis 检索初筛TopK
+    for raw_kw in queries:
+        # === 提取关键词（只要冒号前的）
+        if ":" in raw_kw:
+            kw = raw_kw.split(":")[0].strip()
+        else:
+            kw = raw_kw.strip()
+
+        # [1] 用kw去Redis查TopK
         topk = search_topk_similar_batch([kw], top_k=top_k*2, model_id=model_id)
 
         pairs = []
@@ -224,26 +225,28 @@ def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int 
                 except:
                     pass
 
-            # [2] 只用释义 meaning 作为比对 passage
-            passage = meaning
+            message = f"{word_base}: {meaning}" if meaning != "(无解释)" else word_base
 
-            pairs.append([kw, passage])
-            passages.append(passage)
+            # ✅ 改这里：左边是 kw，右边是 message
+            pairs.append([kw, message])
+
+            passages.append(message)
             redis_keys.append(key)
             cos_sims.append(cos_sim)
 
-        # [3] 分别用FlagEmbedding和GTE reranker打分
+        # [2] reranker打分
         print("\n--- 当前pairs内容 ---")
         for p in pairs:
-            print(f"左边(query): {p[0]} || 右边(passage): {p[1]}")
+            print(f"左边(query=kw): {p[0]} || 右边(message): {p[1]}")
         print("--- 结束 ---\n")
+
         scores_flag = rerank_with_flag(pairs)
         scores_gte = rerank_with_gte(pairs)
 
-        # [4] 保存每个pair的打分结果
+        # [3] 保存打分
         for i in range(len(pairs)):
             results.append({
-                "keyword": kw,
+                "keyword": kw,  # 查询词
                 "redis_key": redis_keys[i],
                 "cosine_similarity": cos_sims[i],
                 "flag_score": scores_flag[i],
@@ -251,10 +254,11 @@ def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int 
                 "final_score": max(scores_flag[i], scores_gte[i])
             })
 
-    # [5] 总体上按final_score排序
+    # [4] 排序
     results.sort(key=lambda x: x["final_score"], reverse=True)
 
     return results[:top_k]
+
 
 
 def search_topk_with_reranker_demo0(queries: List[str], top_k: int = 6, model_id: int = 2) -> List[Dict]:
@@ -358,7 +362,17 @@ def query_related_terms_from_redis(json_text: str, top_k: int = 6, model_id: int
     return all_data
 
 # === 渲染关键词相关词为Checkbox展示 ===
-
+def weather_icon(score: float) -> str:
+    if score >= 0.70:
+        return "☀️ (Excellent)"
+    elif score >= 0.60:
+        return "🌤️ (Good)"
+    elif score >= 0.50:
+        return "☁️ (Moderate)"
+    elif score >= 0.40:
+        return "🌧️ (Weak)"
+    else:
+        return "🌩️ (Poor)"
 def render_checkbox_groups_by_keyword(all_data: list):
     updates = []
     for i, item in enumerate(all_data):
@@ -379,17 +393,26 @@ def render_checkbox_groups_by_keyword(all_data: list):
             # 把四个分数一起展示
             # score = entry.get("score", 0.0)
             # score_display = f"⭐️ 相似度：{score:.3f}" if score > 0.75 else f"相似度：{score:.3f}"
+            '''
             score_display = (
                 f"余弦相似度 (cos): {cosine:.3f}, "
                 f"Flag得分: {flag:.3f}, "
                 f"GTE得分: {gte:.3f}, "
                 f"最终得分: {final:.3f}"
             )
+            '''
+            score_display = (
+                "|  cos-Sim | Flag-Score | GTE-Score | **Final Score** |\n"
+                "| :---: | :---: | :---: | :---: |\n"
+                # f"| {cosine:.3f} | {flag:.3f} | {gte:.3f} | {'⭐️ ' if final > 0.6 else ''}{final:.3f} |"
+                f"| {cosine:.3f} | {flag:.3f} | {gte:.3f} | **{final:.3f}** |"
+            )
 
+    
             choices.append({
                 "id": f"{i}_{j}",
                 "title": explanation,
-                "content": f"### {word}\n{score_display}\n\n" + "\n".join(f"- {ex}" for ex in examples),
+                "content": f"### {word} {weather_icon(final)}\n{score_display}\n\n" + "\n".join(f"- {ex}" for ex in examples),
                 "selected": False
             })
 
