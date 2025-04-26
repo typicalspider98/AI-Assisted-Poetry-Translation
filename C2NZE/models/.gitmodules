@@ -22,6 +22,10 @@
     path = C2NZE/models/bge-reranker-v2-m3
     url = https://huggingface.co/BAAI/bge-reranker-v2-m3
 
-[submodule "Alibaba-NLP/gte-multilingual-reranker-base"]
+[submodule "gte-multilingual-reranker-base"]
     path = C2NZE/models/gte-multilingual-reranker-base
     url = https://huggingface.co/Alibaba-NLP/gte-multilingual-reranker-base
+
+[submodule "bge-reranker-v2-m3"]
+    path = C2NZE/models/bge-reranker-v2-m3
+    url = https://huggingface.co/BAAI/bge-reranker-v2-m3
