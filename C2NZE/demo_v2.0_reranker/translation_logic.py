@@ -300,18 +300,23 @@ def call_deepseek_api(boss_prompt: str) -> str:
     使用 DeepSeek API 调用大模型，传入 Boss 模型生成的 prompt 获取翻译结果。
     """
     write_log(f"调用 DeepSeek API，请求内容:\n{boss_prompt}")
-    response = client.chat.completions.create(
-        model="deepseek-chat",  # 或 "deepseek-reasoner"
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant specialized in translating Chinese poetry."},
-            {"role": "user", "content": boss_prompt},
-        ],
-        temperature=1.4,
-        stream=False
-    )
-    translation = response.choices[0].message.content
-    write_log(f"DeepSeek API 返回翻译:\n{translation}")
-    return translation
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-chat",  # 或 "deepseek-reasoner"
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant specialized in translating Chinese poetry."},
+                {"role": "user", "content": boss_prompt},
+            ],
+            temperature=1.4,
+            stream=False
+        )
+        translation = response.choices[0].message.content
+        write_log(f"DeepSeek API 返回翻译:\n{translation}")
+        return translation
+    except Exception as e:
+        write_log(f"❌ DeepSeek API 调用失败: {str(e)}")
+        print(f"❌ DeepSeek API 调用失败: {str(e)}")
+        return f"❌ DeepSeek API 调用失败: {str(e)}"
 
 
 #####################################
