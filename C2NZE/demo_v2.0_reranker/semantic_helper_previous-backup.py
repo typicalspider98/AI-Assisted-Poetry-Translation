@@ -167,7 +167,7 @@ def rerank_with_gte(pairs: List[List[str]]) -> List[float]:
         inputs = tokenizer(pairs, padding=True, truncation=True, return_tensors='pt', max_length=512).to("cuda")
         logits = model(**inputs).logits.view(-1).float()
         return [custom_sigmoid(x.item(), temperature=1.0) for x in logits]
-'''
+
 def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 2):
     merged_query = ", ".join(queries)
     query_vector = get_embedding(merged_query, model_id)
@@ -189,30 +189,7 @@ def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int 
 
     similarities.sort(key=lambda x: x[1], reverse=True)
     return similarities[:top_k]
-'''
-# 全局变量
-_all_keys = [k.decode() for k in redis_vec.keys("*")]
-_all_vecs = []
-for k in _all_keys:
-    buf = redis_vec.get(k)
-    _all_vecs.append(np.frombuffer(buf, dtype=np.float32))
-_all_vecs = np.stack(_all_vecs, axis=0)        # (N, D)
-_all_norms = np.linalg.norm(_all_vecs, axis=1) # (N,)
 
-def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 2):
-    merged = ", ".join(queries)
-    qv = get_embedding(merged, model_id).astype(np.float32)
-    qnorm = np.linalg.norm(qv) or 1e-12
-
-    # 一次性算出所有点积
-    dots = _all_vecs.dot(qv)                  # shape (N,)
-    sims = dots / (_all_norms * qnorm + 1e-12)
-
-    # argpartition 拿 Top-K 索引
-    idx = np.argpartition(-sims, top_k)[:top_k]
-    idx = idx[np.argsort(-sims[idx])]
-
-    return [(_all_keys[i], float(sims[i])) for i in idx]
 
 
 def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int = 2) -> List[Dict]:
