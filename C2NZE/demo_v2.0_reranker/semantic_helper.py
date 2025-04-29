@@ -159,14 +159,14 @@ def get_gte_reranker():
 def rerank_with_flag(pairs: List[List[str]]) -> List[float]:
     model = get_flag_reranker()
     scores = model.compute_score(pairs, normalize=False)
-    return [custom_sigmoid(x, temperature=2.0) for x in scores]
+    return [custom_sigmoid(x, temperature=0.5) for x in scores]
 
 def rerank_with_gte(pairs: List[List[str]]) -> List[float]:
     tokenizer, model = get_gte_reranker()
     with torch.no_grad():
         inputs = tokenizer(pairs, padding=True, truncation=True, return_tensors='pt', max_length=512).to("cuda")
         logits = model(**inputs).logits.view(-1).float()
-        return [custom_sigmoid(x.item(), temperature=2.0) for x in logits]
+        return [custom_sigmoid(x.item(), temperature=1.0) for x in logits]
 
 def search_topk_similar_batch(queries: List[str], top_k: int = 6, model_id: int = 2):
     merged_query = ", ".join(queries)
