@@ -50,11 +50,11 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
         "请根据下列诗歌内容及长度提取适量的关键词，用于指导英文翻译。\n"
         "要求:\n"
         "1.不要逐句照搬原诗句，结合诗歌原意和意境，提取其中可用于翻译的核心主题词，包括动词、名词、形容词、副词等，以及意象和文化概念。\n"
-        "2.在不破坏诗歌本意和意境的前提下，提取的主题词是按中文诗歌韵律和语义停顿划分出的最小语素和词语，特殊情况下为不破坏诗歌整体含义也可以是中文短语。\n"
+        "2.在不破坏诗歌本意和意境的前提下，提取的主题词是按中文诗歌韵律和语义停顿划分出的最小语素和词语。\n"  # ，特殊情况下为不破坏诗歌整体含义也可以是中文短语。\n"
         "3.主题词包括所有意象，并最终以准确简明的英文单词展示。\n"
         "4.并返回 JSON 格式，关键词应具有翻译价值与文化象征性。\n"
         "JSON 示例格式如下：\n"
-        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\"\n  ]\n}\n\n"
+        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\",\n    ...\n  ]\n}\n\n"
         f"诗歌原文：{poem_text}"
     ).strip()
     return prompt
@@ -78,11 +78,11 @@ def build_keyword_prompt_EN(poem_text: str, max_new_tokens: int = 128) -> str:
         f"2. Instead, analyze the overall meaning and imagery to identify core thematic words that can assist in capturing the essence of the poem in translation. "
         f"These may include verbs, nouns, adjectives, adverbs, as well as symbolic imagery and culturally relevant concepts.\n"
         f"3. Extract keywords according to natural pauses and semantic breaks in the poem's structure, following the rhythm and meaning of the original Chinese.\n"
-        f"4. In special cases, short Chinese phrases may be accepted as a single unit if breaking them apart would compromise the poem's overall meaning or imagery.\n"
-        f"5. Include all key symbols and imagery from the poem, and present the extracted thematic keywords as accurate, concise English words.\n"
-        f"6. Return the results in JSON format. The selected keywords should carry both translational value and cultural symbolism.\n"
+        # f"4. In special cases, short Chinese phrases may be accepted as a single unit if breaking them apart would compromise the poem's overall meaning or imagery.\n"
+        f"4. Include all key symbols and imagery from the poem, and present the extracted thematic keywords as accurate, concise English words.\n"
+        f"5. Return the results in JSON format. The selected keywords should carry both translational value and cultural symbolism.\n"
         f"Expected JSON format:\n"
-        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\"\n  ]\n}\n\n"
+        "{\n  \"keywords\": [\n    \"word1: English simple explanation\",\n    \"word2: English simple explanation\",\n    \"word3: English simple explanation\",\n    ...\n  ]\n}\n\n"
         f"Original Poem:{poem_text}"
     ).strip()
     return prompt
@@ -248,8 +248,8 @@ def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int 
                 except:
                     pass
 
-            message = f"{word_base}: {meaning}" if meaning != "(无解释)" else word_base
-
+            # message = f"{word_base}: {meaning}" if meaning != "(无解释)" else word_base
+            message = meaning if meaning and meaning != "(无解释)" else word_base
             # ✅ 改这里：左边是 kw，右边是 message
             pairs.append([kw, message])
 
@@ -519,7 +519,10 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
     if not context_parts:
         return prompt + "\n\n⚠️ [提示] 当前未选择任何关键词释义，未进行注入"
 
-    context = "以下是与本首诗歌翻译相关的新西兰英语关键词及释义，可供参考：\n" + "\n".join(context_parts)
+    # context = "以下是与本首诗歌翻译相关的新西兰英语关键词及释义，可供参考：\n" + "\n".join(context_parts)
+    context = "以下是与本首诗歌翻译相关的关键词: 关键词释义: 新西兰本地英语的用法推荐，可供参考：\n" + "\n".join(context_parts)
+    # 以下是与本首诗歌翻译相关的参考信息（格式为“关键词: 关键词释义: 新西兰本地英语的用法推荐”），具体如下：
+    
     return prompt.strip() + "\n\n" + context
 
 
