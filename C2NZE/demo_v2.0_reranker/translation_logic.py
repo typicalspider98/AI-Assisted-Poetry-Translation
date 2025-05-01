@@ -7,6 +7,14 @@ from datetime import datetime
 import os
 from transformers import BitsAndBytesConfig
 
+import re
+strip_dash_block = lambda s: (
+    re.search(r"---\s*([\s\S]+?)\s*---", s).group(1).strip()
+    if re.search(r"---\s*([\s\S]+?)\s*---", s)
+    else s
+)
+
+
 # 限制 PyTorch 的分配策略，以减少显存碎片化
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:64"
 
@@ -194,10 +202,10 @@ def generate_instruction_text(user_query: str) -> str:
         f"（例如：尽量传达原诗的核心思想、情感和主旨，避免曲解或过度延伸；"
         f"保留诗歌中的文化意象，并选择合适的英文表达；语言要有韵味，保持诗性表达，如节奏、押韵（若能做到）、简练、修辞等；"
         f"对一些特有的文化典故、历史人物或风俗需做注解、意译或文化转化，避免读者误解；根据具体诗句灵活取舍，重意境时意译，重结构或修辞时偏直译）\n"
-        f"3.prompt应指出在翻译时要体现新西兰地区英语的语言风格和文化特点。"
+        f"3.prompt应指出在翻译时要体现新西兰地区英语的语言风格和文化特点，但务必不要给出具体用词建议，我怕你存在这方面的幻觉。"
         f"（关于什么是新西兰英语，我指的是下面可能会提供给你的一部分关键词，这些关键词取自由一本新西兰英语词典生成的向量数据库。"
         f"在翻译本诗的过程中，有些英文单词在新西兰英语中有特殊的表达，我们将这些特殊的使用情况从向量数据库中取出来，"
-        f"以关键词及例句的形式展示，你在生成prompt时可以参考这些词的使用场景，看是否可以将其融入你的诗歌翻译中。"
+        f"以关键词的形式展示，你在生成prompt时可以参考这些词的释义，看是否可以将其融入你的诗歌翻译中。"
         f"要尽可能保留诗歌的原有含义及意境，同时兼具新西兰英语的表达特色。）"
     )
     write_log(f"生成初始提示文本:\n{instruction}")
@@ -215,29 +223,25 @@ def generate_instruction_text_EN(user_query: str) -> str:
     )
     """
     instruction = (
-        f"You are a professional translation support system, specifically designed to generate prompts "
-        f"that guide large language models in producing translations that align with the usage and stylistic features of New Zealand English."
-        f"The user needs to translate the following text:\n{user_query}\n"
-        f"Please directly generate a prompt that instructs the model to translate the above Chinese poem into English poetry."
-        f"The requirements for the generated prompt are as follows (do not include the word **Prompt:**   in the output):\n"
-        f"1. The prompt must be written in English.\n"
-        f"2. The first sentence should clearly instruct the model to translate the provided Chinese poem into an English poem, "
-        f"and it must include the original Chinese text.\n"
-        f"3. The prompt should take into account the specific content of the poem and describe appropriate considerations for the translation process. "
-        f"For example:\n"
-        f"Strive to convey the core ideas, emotions, and main message of the original poem, avoiding distortion or excessive elaboration."
-        f"Preserve the cultural imagery within the poem and choose suitable English expressions."
-        "Maintain poetic qualities such as rhythm, rhyme (if feasible), conciseness, and literary devices."
-        "When dealing with specific cultural references, historical figures, or customs, include annotation, "
-        "cultural adaptation, or interpretive translation to prevent misunderstanding.\n"
-        "Adapt the translation approach flexibly according to each line—favoring interpretive translation for imagery-rich lines, "
-        "and more direct translation for structurally or rhetorically important lines.\n"
-        "The prompt should also emphasize the need to reflect the linguistic style and cultural characteristics of New Zealand English in the translation.\n"
-        "(Regarding what New Zealand English entails, the user may provide a list of keywords derived from a vector database "
-        "built from a New Zealand English dictionary. In some cases, certain English words may have unique usages in New Zealand English. "
-        "We extract these usage cases from the database and present them as keywords with sample sentences. "
-        "When generating the prompt, you may refer to these usage contexts to see whether they can be incorporated into the poem's translation. The goal is to retain the original poem's meaning and imagery as much as possible, while also capturing the distinctive qualities of New Zealand English.)"
+        f"You are a professional translation support system dedicated to guiding a large language model "
+        f"in producing English translations of Chinese poetry that align with the linguistic habits and cultural features of New Zealand English.\n"
+        f"The user has submitted the following Chinese poem for translation:\n{user_query}\n"
+        f"Please generate an English-language prompt that will instruct the model to translate this Chinese poem into an English poem.\n"
+        f"The generated prompt should follow these principles:\n"
+        f"1. The prompt must begin by clearly stating the original Chinese poem and explicitly requesting its translation into English poetry.\n"
+        f"2. The prompt should reference the specific content of the poem and outline key considerations for the translation. For example:\n"
+        f"   - Accurately convey the poem's core ideas, emotional tone, and intended message. Avoid misinterpretation or overextension.\n"
+        f"   - Preserve important cultural imagery (such as the moon or concepts of 'home') and choose English expressions that maintain their symbolic meaning.\n"
+        f"   - Maintain the poetic flavor of the original text, including rhythm, rhyme (if feasible), conciseness, and rhetorical devices.\n"
+        f"   - For culturally specific references—such as historical figures, idioms, or customs—consider using annotation, cultural reinterpretation, or interpretive translation to prevent misunderstanding.\n"
+        f"   - Flexibly adapt the translation approach line by line: use freer interpretive translation for lines emphasizing imagery and emotion, and more literal translation for lines with structural or rhetorical emphasis.\n"
+        f"3. The prompt must emphasize that the translation should reflect the linguistic style and cultural characteristics of New Zealand English. "
+        f"However, **do not include specific vocabulary suggestions**, as hallucinations may occur.\n"
+        f"(The definition of New Zealand English here refers to a set of keywords that may be provided below, extracted from a vector database built from a New Zealand English dictionary. "
+        f"In the translation process, you may consult the definitions of these keywords to determine whether they can be naturally integrated into the poem's translation. "
+        f"The goal is to preserve the original meaning and imagery of the poem as much as possible, while expressing it in a style consistent with New Zealand English.)"
     )
+
     write_log(f"生成初始EN提示文本:\n{instruction}")
     return instruction
 
@@ -269,7 +273,10 @@ def call_local_qwen_with_instruction(instruction: str, max_new_tokens=1024, min_
     # result = local_generate(formatted_instruction, max_new_tokens=max_new_tokens, min_length=min_length)
     result = local_generate(instruction, max_new_tokens=max_new_tokens, min_length=min_length)
     # result = clean_prompt(result)  # 清洗不需要的标记
+    # 💡 只保留 “---” 中的主体
     write_log(f"本地 Qwen 模型返回的 prompt0:\n{result}")
+    result = strip_dash_block(result)
+
     return result
 
 

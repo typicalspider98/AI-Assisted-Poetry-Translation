@@ -520,7 +520,9 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
         return prompt + "\n\n⚠️ [提示] 当前未选择任何关键词释义，未进行注入"
 
     # context = "以下是与本首诗歌翻译相关的新西兰英语关键词及释义，可供参考：\n" + "\n".join(context_parts)
-    context = "以下是与本首诗歌翻译相关的关键词: 关键词释义: 新西兰本地英语的用法推荐，可供参考：\n" + "\n".join(context_parts)
+    # context = "以下是与本首诗歌翻译相关的关键词: 关键词释义: 新西兰本地英语的用法推荐，可供参考：\n" + "\n".join(context_parts)
+    context = "以下是从本首诗歌提取的几个关键词及释义，附上可替换的新西兰词语，可供翻译时参考：\n" + "\n".join(context_parts)
+
     # 以下是与本首诗歌翻译相关的参考信息（格式为“关键词: 关键词释义: 新西兰本地英语的用法推荐”），具体如下：
     
     return prompt.strip() + "\n\n" + context
