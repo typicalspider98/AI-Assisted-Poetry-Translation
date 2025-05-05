@@ -9,6 +9,8 @@ import gradio as gr
 def normalize_text_for_matching(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\b(\w+)[’']s\b", r"\1", text)
+    text = re.sub(r"\b(\w+)s[’']\b", r"\1", text)
+
     text = re.sub(r"[^\w\s]", "", text)
     return text
 
@@ -83,4 +85,4 @@ with gr.Blocks() as demo:
 
     analyze_button.click(fn=analyze_single_translation, inputs=input_box, outputs=output_box)
 
-demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+demo.launch(server_name="0.0.0.0", server_port=7861, share=True)

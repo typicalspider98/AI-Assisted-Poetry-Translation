@@ -17,3 +17,5 @@ day
 down
 under
 have
+home
+out
