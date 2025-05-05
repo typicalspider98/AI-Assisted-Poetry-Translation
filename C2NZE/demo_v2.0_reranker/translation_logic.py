@@ -158,7 +158,7 @@ def local_generate(prompt_text: str, max_new_tokens=128, min_length=256):
         do_sample=True,
         # temperature=0.8,
         # top_p=0.9
-        temperature=0.6,
+        temperature=0.7,
         top_p=0.85,
         repetition_penalty=1.1,  # 抑制重复
         eos_token_id=tokenizer.eos_token_id  # 显式指定结束符
@@ -202,7 +202,7 @@ def generate_instruction_text(user_query: str) -> str:
     """
     instruction = (
         f"你是一个专业的翻译辅助系统，专门负责编写prompt指导大模型进行中文诗歌向新西兰英语诗歌翻译工作。\n"
-        f"诗歌内容如下：\n{user_query}\n"
+        f"诗歌内容如下：\n\n{user_query}\n\n"
         f"要求如下：\n"
         f"1. prompt中要包含诗歌内容，以传递给大模型。\n"
         f"2. 直接给出中文prompt。\n"

@@ -6,6 +6,13 @@
 举头望明月，低头思故乡。
 ```
 ---
+## translation1.0 - by Google Translation
+Google Translation
+```
+Quiet Night Thoughts
+The moonlight shines brightly in front of my bed, I wonder if it is frost on the ground.
+Looking up at the bright moon, I think of my hometown.
+```
 ## translation1.1 - prompt in chinese then chatGPT-4o
 直接给chatGPT-4o, 未做任何修改,prompt如下：
 
