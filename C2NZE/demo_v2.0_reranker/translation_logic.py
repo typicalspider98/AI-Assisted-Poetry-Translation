@@ -157,7 +157,7 @@ def local_generate(prompt_text: str, max_new_tokens=128, min_length=256):
         do_sample=True,
         # temperature=0.8,
         # top_p=0.9
-        temperature=0.6,
+        temperature=0.7,
         top_p=0.85,
         repetition_penalty=1.1,  # 抑制重复
         eos_token_id=tokenizer.eos_token_id  # 显式指定结束符
@@ -201,9 +201,9 @@ def generate_instruction_text(user_query: str) -> str:
     """
     instruction = (
         f"你是一个专业的翻译辅助系统，专门负责编写prompt指导大模型进行中文诗歌向新西兰英语诗歌翻译工作。\n"
-        f"用户需要翻译的内容是：\n{user_query}\n"
+        f"用户需要翻译的内容是：\n\n{user_query}\n\n"
         f"要求如下：\n"
-        f"1. prompt中要传递用户需要翻译的内容给大模型。\n"
+        f"1.  prompt中要包含用户需要翻译的诗歌内容给大模型。\n"
         f"2. 直接给出一个中文prompt，不需要介绍。\n"
         f"3. prompt应参考用户给出的中文诗歌的具体内容，选择恰当的语言描述本首诗歌在翻译过程中应注意的事项。"
         f"（例如：尽量传达原诗的核心思想、情感和主旨，避免曲解或过度延伸；保留诗歌中的文化意象，并选择合适的英文表达；语言要有韵味，保持诗性表达，如节奏、押韵（若能做到）、简练、修辞等；"
