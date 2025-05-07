@@ -30,16 +30,17 @@ prism = Prism("en", temperature=1.0)
 
 # ---------- 全局路径 ----------
 EXCEL_IN  = "poems11.xlsx"
-EXCEL_OUT = "poems11_prism_qe.xlsx"
-PDF_PATH  = "53-poem_prism_summary.pdf"
+EXCEL_OUT = "54-poems11_prism_qe.xlsx"
+PDF_PATH  = "54-poem_prism_summary.pdf"
 
 SYSTEMS    = ["Google", "Reference", "B‑E System", "DeepSeek", "ChatGPT-4o"]
 TRANS_ROWS = range(3, 8)
 SCORE_ROWS = range(19, 24)
 
 # ---------- 工具 ----------
-def sigmoid(x: float) -> float:
-    return 1.0 / (1.0 + math.exp(-x))
+def scale_sigmoid(x: float, scale: float = 3.0) -> float:
+    """增强区分度的 Sigmoid 归一化"""
+    return 1.0 / (1.0 + math.exp(-x / scale))
 
 def score_prism(src: str, hyp: str) -> float:
     lp_list = prism.score(cand=[hyp], src=[src], segment_scores=True)
@@ -78,8 +79,8 @@ def plot_prism(df, sys_raw):
             m = re.search(r"PRISM\s*([-0-9.]+)", cell)
             raw_vals.append(float(m.group(1)) if m else -6.0)
 
-        # 调整归一化曲线：sigmoid(-v / 2) 提高区分度
-        sig = [sigmoid(-v / 2) for v in raw_vals]
+        # 使用增强版 Sigmoid 映射提高区分度
+        sig = [scale_sigmoid(-v, scale=3.0) for v in raw_vals]
         x = np.arange(len(SYSTEMS))
         ax.bar(x, sig, color="seagreen")
         ax.set_xticks(x); ax.set_xticklabels(SYSTEMS, rotation=15)
@@ -90,8 +91,9 @@ def plot_prism(df, sys_raw):
         for xi, (sv, rv) in enumerate(zip(sig, raw_vals)):
             ax.text(xi, sv+0.01, f"{sv:.2f}\n({rv:.2f})", ha="center", va="bottom", fontsize=8)
 
+    # 汇总图
     ax_avg = axes[-1]
-    avg_sig = [sigmoid(-np.mean(sys_raw[s]) / 2) for s in SYSTEMS]
+    avg_sig = [scale_sigmoid(-np.mean(sys_raw[s]), scale=3.0) for s in SYSTEMS]
     x = np.arange(len(SYSTEMS))
     ax_avg.bar(x, avg_sig, color="gold")
     ax_avg.set_xticks(x); ax_avg.set_xticklabels(SYSTEMS, rotation=15)
