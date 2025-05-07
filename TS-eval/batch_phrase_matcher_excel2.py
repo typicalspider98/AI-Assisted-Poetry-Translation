@@ -10,8 +10,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 # === 参数路径
 EXCEL_PATH = "poems11.xlsx"
 OUTPUT_PATH = "poems11_nz_check.xlsx"
-PDF_OUTPUT_PATH = "poem_nz_match_summary.pdf"
-AC_PKL_PATH = "ac_nzdict.pkl"
+PDF_OUTPUT_PATH = "11-poem_nz_match_summary.pdf"
+AC_PKL_PATH = "ac_nzdict_new.pkl"
 BLACKLIST_PATH = "low_value_words.txt"
 
 # === 文本清洗

@@ -7,7 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 # === 参数路径
 EXCEL_PATH = "poems11_nz_check.xlsx"
-PDF_OUTPUT_PATH = "poem_nz_match_lines_all.pdf"  # 折线图
+PDF_OUTPUT_PATH = "21-poem_nz_match_lines_all.pdf"  # 折线图
 
 # === 系统名与行号
 SYSTEMS = ["Google", "Reference", "B-E System", "DeepSeek", "ChatGPT-4o"]

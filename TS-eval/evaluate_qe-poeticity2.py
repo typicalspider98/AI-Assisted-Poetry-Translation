@@ -36,11 +36,11 @@ def rhyme_suffix_score(word1, word2):
     
     # fallback 拼写后缀匹配
     if word1[-3:] == word2[-3:]:
-        return 0.6
+        return 0.5
     if word1[-2:] == word2[-2:]:
         return 0.4
     if word1[-1:] == word2[-1:]:
-        return 0.2
+        return 0.3
     return 0.0
 
 # Rhyme 分数（整首诗）
