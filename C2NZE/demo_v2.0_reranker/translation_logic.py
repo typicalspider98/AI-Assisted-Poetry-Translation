@@ -150,6 +150,7 @@ def local_generate(prompt_text: str, max_new_tokens=128, min_length=256):
     inputs = tokenizer(prompt_text, return_tensors="pt").to("cuda")  # for GPU
     # inputs = tokenizer(prompt_text, return_tensors="pt")  # for CPU
     print("max_new_tokens:", max_new_tokens)
+    torch.cuda.empty_cache()  # ✅ 清理显存，非强制但保险
     outputs = model.generate(
         **inputs,
         max_new_tokens=max_new_tokens,
@@ -201,10 +202,10 @@ def generate_instruction_text(user_query: str) -> str:
     """
     instruction = (
         f"你是一个专业的翻译辅助系统，专门负责编写prompt指导大模型进行中文诗歌向新西兰英语诗歌翻译工作。\n"
-        f"用户需要翻译的内容是：\n\n{user_query}\n\n"
+        f"诗歌内容如下：\n\n{user_query}\n\n"
         f"要求如下：\n"
-        f"1.  prompt中要包含用户需要翻译的诗歌内容给大模型。\n"
-        f"2. 直接给出一个中文prompt，不需要介绍。\n"
+        f"1. prompt中要包含诗歌内容，以传递给大模型。\n"
+        f"2. 直接给出中文prompt。\n"
         f"3. prompt应参考用户给出的中文诗歌的具体内容，选择恰当的语言描述本首诗歌在翻译过程中应注意的事项。"
         f"（例如：尽量传达原诗的核心思想、情感和主旨，避免曲解或过度延伸；保留诗歌中的文化意象，并选择合适的英文表达；语言要有韵味，保持诗性表达，如节奏、押韵（若能做到）、简练、修辞等；"
         f"对一些特有的文化典故、历史人物或风俗需做注解、意译或文化转化，避免读者误解；根据具体诗句灵活取舍，重意境时意译，重结构或修辞时偏直译）\n"

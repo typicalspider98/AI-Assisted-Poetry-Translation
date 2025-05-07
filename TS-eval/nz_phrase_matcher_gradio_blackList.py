@@ -10,6 +10,8 @@ def normalize_text_for_matching(text: str) -> str:
     text = text.lower()
     text = re.sub(r"\b(\w+)[’']s\b", r"\1", text)  # 单数所有格
     text = re.sub(r"\b(\w+)s[’']\b", r"\1", text)  # 复数所有格
+    text = re.sub(r"\b(\w+)s[’']\b", r"\1", text)
+
     text = re.sub(r"[^\w\s'’-]", "", text)  # 保留撇号/连字符/空格
     return text
 
@@ -114,4 +116,4 @@ with gr.Blocks() as demo:
     refresh_button.click(fn=refresh_blacklist_ui, outputs=refresh_status)
     show_button.click(fn=show_blacklist_ui, outputs=blacklist_view)
 
-demo.launch(server_name="0.0.0.0", server_port=7860, share=True)
+demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
