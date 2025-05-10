@@ -51,7 +51,7 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
     prompt = (
         f"你是一位精通中文古典诗歌与新西兰英语文化的翻译顾问。\n\n"
         f"请根据诗歌内容提取适量的关键词，用于从本地基于新西兰英语词典构建的向量数据库查找相关词，指导翻译工作。\n\n"
-        f"诗歌原文：\n{poem_text}"
+        f"诗歌原文：\n{poem_text}\n"
         f"\n提取要求:\n"
         f"1. 提取的关键词可用于翻译参考，如动词、名词、形容词、副词等。\n"
         f"2. 根据诗歌中文韵律、语义停顿划分的最小语素或词语进行关键词提取。\n"
@@ -235,7 +235,7 @@ def search_topk_with_reranker(queries: List[str], top_k: int = 6, model_id: int 
             kw = raw_kw.strip()
 
         # [1] 用kw去Redis查TopK
-        topk = search_topk_similar_batch([kw], top_k=top_k*2, model_id=model_id)
+        topk = search_topk_similar_batch([kw], top_k=top_k+1, model_id=model_id)
 
         pairs = []
         redis_keys = []
@@ -528,8 +528,8 @@ def inject_keywords_into_prompt(prompt: str, selected_json: str) -> str:
     # context = "以下是与本首诗歌翻译相关的关键词: 关键词释义: 新西兰本地英语的用法推荐，可供参考：\n" + "\n".join(context_parts)
     # context = "为了减少你的幻觉，请不要擅自使用你认为是新西兰英语的特殊用词。以下是从本首诗歌提取的几个关键词及释义，附上可替换的新西兰词语，可供翻译时参考：\n" + "\n".join(context_parts)
     context = "为减少语言模型可能产生的幻觉，请勿擅自使用你认为属于新西兰英语的特殊用词。\n"\
-    + "本系统将在下方提供从本诗中提取的关键词及其释义，并附上在新西兰英语中具有本地特色的可替换表达，格式为：\"诗中提取的关键词: 其释义: 本地特色的可替换表达\"。\n"\
-    + "这些词汇仅供翻译过程中进行本地化调整时参考，是否采用请结合语境判断，务必确保不偏离原诗的意境与表达。\n" + "\n".join(context_parts)
+    + "本系统将在下方提供从本诗中提取的关键词及其释义，并附上在新西兰英语中具有本地特色的可替换表达，格式为：\"诗中提取的关键词: 本地特色的可替换表达\"。\n"\
+    + "这些词汇仅供翻译过程中进行本地化调整时参考，是否采用请结合语境判断，务必确保不偏离原诗的意境与表达。请给出本地化的版本。\n" + "\n".join(context_parts)
 
     # 以下是与本首诗歌翻译相关的参考信息（格式为“关键词: 关键词释义: 新西兰本地英语的用法推荐”），具体如下：
     
