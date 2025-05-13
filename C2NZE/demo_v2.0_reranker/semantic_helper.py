@@ -60,7 +60,7 @@ def build_keyword_prompt(poem_text: str, max_new_tokens: int = 128) -> str:
         f"5. 避免使用词组，使用简明的单词。\n"
         f"6. 返回 JSON 格式。\n\n"
         f"JSON 示例格式如下：\n"
-        "{\n  \"keywords\": [\n    \"word 1: simple explanation in English\",\n    \"word 2: simple explanation in English\",\n    \"word 3: simple explanation in English\",\n    ...\n  ]\n}\n\n"
+        "{\n  \"keywords\": [\n    \"word 1\",\n    \"word 2\",\n    \"word 3\",\n    ...\n  ]\n}\n\n"
     ).strip()
     return prompt
 def build_keyword_prompt_EN(poem_text: str, max_new_tokens: int = 128) -> str:
